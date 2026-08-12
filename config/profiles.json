@@ -1,0 +1,17 @@
+{
+  "defaultProfile": "global-en",
+  "profiles": [
+    {
+      "id": "local-vi",
+      "file": "default.json",
+      "label": "Local VI",
+      "description": "Vietnamese local audience — Quán Bar Live"
+    },
+    {
+      "id": "global-en",
+      "file": "global-en.json",
+      "label": "Global EN",
+      "description": "English-first overseas — Neon Club Live + Savage Fortune"
+    }
+  ]
+}

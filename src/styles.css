@@ -1,0 +1,215 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --color-bg: #07070c;
+  --color-surface: #101018;
+  --color-surface-2: #171722;
+  --color-surface-3: #1f1f2e;
+  --color-fg: #f2f2f7;
+  --color-muted: #9b9bb0;
+  --color-border: #2a2a3d;
+  --color-primary: #a855f7;
+  --color-primary-fg: #ffffff;
+  --color-accent: #22d3ee;
+  --color-accent-2: #f472b6;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f43f5e;
+  --color-ring: #22d3ee;
+  --color-floor: #0c0a1a;
+  --color-neon-pink: #ff2d95;
+  --color-neon-blue: #00e5ff;
+  --color-neon-purple: #b14cff;
+  --font-sans: "DM Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Orbitron", "DM Sans", system-ui, sans-serif;
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .text-glow {
+    text-shadow:
+      0 0 12px color-mix(in oklab, var(--color-accent) 70%, transparent),
+      0 0 28px color-mix(in oklab, var(--color-primary) 40%, transparent);
+  }
+  .panel-card {
+    background: linear-gradient(165deg, var(--color-surface) 0%, var(--color-surface-2) 100%);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+  .neon-border {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-accent) 35%, transparent),
+      0 0 24px color-mix(in oklab, var(--color-primary) 18%, transparent);
+  }
+}
+
+/* Dance floor stage */
+.stage {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 100%, rgba(168, 85, 247, 0.35), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(34, 211, 238, 0.15), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(244, 114, 182, 0.15), transparent 50%),
+    linear-gradient(180deg, #05050a 0%, #0c0a1a 45%, #12081f 100%);
+}
+
+.stage-grid {
+  position: absolute;
+  inset: 40% 0 0 0;
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(168, 85, 247, 0.12) 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(500px) rotateX(58deg);
+  transform-origin: center top;
+  mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+}
+
+.dancer {
+  position: absolute;
+  bottom: 12%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  transition: left 0.6s ease, transform 0.3s ease;
+  will-change: transform;
+}
+
+.dancer-body {
+  width: 42px;
+  height: 64px;
+  border-radius: 14px 14px 10px 10px;
+  position: relative;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+.dancer-body::before {
+  content: "";
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: inherit;
+  filter: brightness(1.15);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+}
+
+.dancer.dancing .dancer-body {
+  animation: bounce-dance 0.55s ease-in-out infinite alternate;
+}
+
+.dancer-name {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes bounce-dance {
+  from {
+    transform: translateY(0) rotate(-4deg) scale(1);
+  }
+  to {
+    transform: translateY(-14px) rotate(4deg) scale(1.05);
+  }
+}
+
+@keyframes pulse-neon {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10%) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(540deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fireworks-burst {
+  0% {
+    transform: scale(0.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.fx-particle {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 2px;
+  animation: confetti-fall 2.2s linear forwards;
+}
+
+.fx-burst {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid var(--color-accent);
+  animation: fireworks-burst 0.9s ease-out forwards;
+  pointer-events: none;
+}
+
+.banner-pulse {
+  animation: pulse-neon 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dancer.dancing .dancer-body,
+  .banner-pulse,
+  .fx-particle,
+  .fx-burst {
+    animation: none;
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "id": "local-vi",
+  "label": "Local VI",
+  "language": "vi",
+  "showBrand": "Quán Bar Live",
+  "productBrand": "QuanBar",
+  "oneLiner": "Gõ 1 để vào sàn — tặng quà bắn pháo hoa.",
+  "mode": "club",
+  "banner": {
+    "primary": "GÕ 1 ĐỂ VÀO SÀN",
+    "secondary": "Gõ 0 để rời · dance · style · skin",
+    "floorFull": "Sàn đầy rồi! Đợi lượt hoặc tặng quà để ưu tiên.",
+    "giftCta": "Tặng quà = pháo hoa + TOP board",
+    "fortunePrimary": "HỎI GÌ CŨNG ĐƯỢC — AI Master đọc số mệnh",
+    "fortuneSecondary": "Comment câu hỏi của bạn ngay"
+  },
+  "commands": {
+    "join": ["1", "join", "vào"],
+    "leave": ["0", "leave", "ra"],
+    "dance": ["dance", "nhảy"],
+    "style": ["style", "đổi"],
+    "skin": ["skin"]
+  },
+  "mc": {
+    "enabled": true,
+    "hypeIntervalSec": 180,
+    "greet": [
+      "Chào {name}! Vào sàn nào!",
+      "Hey {name}, nhảy đi!",
+      "{name} đã vào club!"
+    ],
+    "thank": [
+      "Cảm ơn {name} đã tặng {gift}!",
+      "Wow {name} quá đã với {gift}!"
+    ],
+    "hype": [
+      "Gõ 1 để vào sàn nhảy!",
+      "Sàn đang chờ bạn — type 1!",
+      "Tặng quà để bắn pháo hoa!",
+      "Ai dám nhảy tiếp không?"
+    ],
+    "floorFull": [
+      "Sàn đầy rồi bạn ơi, đợi chút nhé!"
+    ]
+  },
+  "gifts": {
+    "note": "TikTok diamond scale (approx): Rose=1, Finger Heart=5, GG=1, Perfume=20, Universe=1000+",
+    "thresholds": [
+      { "minValue": 1, "effect": "spark", "label": "Spark" },
+      { "minValue": 10, "effect": "confetti", "label": "Confetti" },
+      { "minValue": 50, "effect": "fireworks", "label": "Fireworks" },
+      { "minValue": 200, "effect": "mega", "label": "Mega Blast" },
+      { "minValue": 1000, "effect": "legendary", "label": "Legendary" }
+    ]
+  },
+  "gemini": {
+    "systemInstruction": "Bạn là MC quán bar livestream Việt Nam. Nói ngắn, vui, năng lượng cao. Không dài dòng."
+  },
+  "fortune": {
+    "brand": "Tử Vi Live",
+    "systemInstruction": "Bạn là AI Master đọc số mệnh, hơi roast nhẹ, trả lời ngắn 2-4 câu tiếng Việt.",
+    "ctaBanner": "Comment câu hỏi — AI Master trả lời trong 10 giây",
+    "demoLines": [
+      "Hôm nay vận tình duyên của bạn hơi... lủng củng.",
+      "Sự nghiệp đang mở — nhưng đừng khoe sớm."
+    ]
+  },
+  "emptyFloor": {
+    "autoDemo": true,
+    "demoNames": ["Lan", "Minh", "Huy", "Trang", "Khoa"]
+  },
+  "obs": {
+    "portrait": "1080x1920",
+    "landscape": "1920x1080",
+    "overlayPath": "/overlay"
+  },
+  "livePack": {
+    "title": "Quán Bar Live — Gõ 1 vào sàn 🕺",
+    "description": "Interactive bar overlay. Gõ 1 join, 0 leave, dance, tặng quà pháo hoa.",
+    "pinned": "CÁCH CHƠI: Gõ 1 vào sàn · 0 rời · dance nhảy · tặng quà = pháo hoa",
+    "first60s": "Chào mọi người! Gõ 1 để vào sàn ngay. Ai tặng quà đầu tiên mình bật pháo hoa!"
+  }
+}

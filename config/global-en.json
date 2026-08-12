@@ -1,0 +1,104 @@
+{
+  "id": "global-en",
+  "label": "Global EN",
+  "language": "en",
+  "showBrand": "Neon Club Live",
+  "productBrand": "QuanBar",
+  "oneLiner": "Free interactive nightclub — type 1 to join the floor. Gifts unlock fireworks.",
+  "mode": "club",
+  "banner": {
+    "primary": "TYPE 1 TO JOIN THE FLOOR",
+    "secondary": "Type 0 to leave · dance · style · skin",
+    "floorFull": "Floor is full! Wait your turn — or gift to jump the line.",
+    "giftCta": "Send a gift = fireworks + TOP board",
+    "fortunePrimary": "ASK ANYTHING — AI Master roasts your fate",
+    "fortuneSecondary": "Type your question in chat right now"
+  },
+  "commands": {
+    "join": ["1", "join", "j"],
+    "leave": ["0", "leave", "l"],
+    "dance": ["dance", "d"],
+    "style": ["style", "s"],
+    "skin": ["skin"]
+  },
+  "mc": {
+    "enabled": true,
+    "hypeIntervalSec": 100,
+    "greet": [
+      "Welcome {name}! Hit the floor!",
+      "Yo {name} just walked in — let's go!",
+      "{name} is in the club! Type dance!",
+      "Big welcome to {name}!",
+      "{name} joined the neon floor!"
+    ],
+    "thank": [
+      "Thank you {name} for the {gift}!",
+      "Fireworks for {name} — that {gift} hit different!",
+      "{name} just lit up the club with {gift}!",
+      "Huge love to {name} for {gift}!"
+    ],
+    "hype": [
+      "Type 1 to join the dance floor — free!",
+      "Empty spot on the floor — type 1 right now!",
+      "Send a gift and we drop fireworks!",
+      "Who's next? Type 1 and own the floor!",
+      "Club is open — type 1, dance, gift for FX!",
+      "New viewers: type 1 to appear on stream!",
+      "Gift ladder is live — climb the TOP board!",
+      "Don't just watch — type 1 and join us!",
+      "Savage energy only — type 1 or ask the AI Master!",
+      "Fireworks unlock with gifts — make it rain!",
+      "Style parade soon — type style to switch looks!",
+      "First-timers: type 1. That's it. You're in."
+    ],
+    "floorFull": [
+      "Floor is packed! Gift to priority-queue, or wait for a spot."
+    ]
+  },
+  "gifts": {
+    "note": "Diamond psychology (TikTok-style units):\n• 1–9: Spark — small pop, name shoutout\n• 10–49: Confetti — screen confetti + MC thank\n• 50–199: Fireworks — full stage fireworks\n• 200–999: Mega Blast — camera shake + TOP boost\n• 1000+: Legendary — full takeover FX + sticky TOP\nYouTube Super Chat map: $1≈spark, $5≈confetti, $20≈fireworks, $50≈mega, $100+≈legendary.",
+    "thresholds": [
+      { "minValue": 1, "effect": "spark", "label": "Spark" },
+      { "minValue": 10, "effect": "confetti", "label": "Confetti" },
+      { "minValue": 50, "effect": "fireworks", "label": "Fireworks" },
+      { "minValue": 200, "effect": "mega", "label": "Mega Blast" },
+      { "minValue": 1000, "effect": "legendary", "label": "Legendary" }
+    ]
+  },
+  "gemini": {
+    "systemInstruction": "You are the Neon Club Live nightclub MC for an international English livestream (SEA + US). Speak ONLY English. Keep every line short (1–2 sentences), funny, high-energy, and conversion-focused: push viewers to type 1 to join, dance, and send gifts for fireworks. Never use Vietnamese. Never lecture. Sound like a hype club host, not a podcast. Roast lightly, celebrate gifts loudly, welcome new names. If the floor is empty, sound busy and inviting — never admit the room is dead."
+  },
+  "fortune": {
+    "brand": "Savage Fortune Live",
+    "systemInstruction": "You are the Savage Fortune Live AI Master. English only. Roast-friendly spiritual tarot vibe: witty, sharp, kind under the burn. Answer in 2–4 short spoken sentences. End with a hook (gift, follow, or next question). Never Vietnamese. Never medical/legal claims. Entertainment only.",
+    "ctaBanner": "Drop your question — AI Master roasts your fate in 10 seconds",
+    "demoLines": [
+      "Your love life? Bold of you to ask on a public stream… but the cards say: stop texting first.",
+      "Career looks spicy — but if you keep ghosting opportunities, the universe will ghost you back.",
+      "Money energy is coming. Don't spend it on something that leaves before sunrise.",
+      "Someone from your past is watching. Don't open that door unless you like chaos.",
+      "Main character energy detected — now act like it. Type another question."
+    ]
+  },
+  "emptyFloor": {
+    "autoDemo": true,
+    "demoNames": ["Aya", "Ken", "Mia", "Jay", "Rio", "Nova", "Leo", "Sky"]
+  },
+  "obs": {
+    "portrait": "1080x1920",
+    "landscape": "1920x1080",
+    "overlayPath": "/overlay"
+  },
+  "livePack": {
+    "title": "TYPE 1 TO JOIN 🕺 Free Interactive Nightclub | Neon Club Live",
+    "description": "Free interactive nightclub on stream. Type 1 to join the floor. Type 0 to leave. Type dance. Gifts unlock fireworks. Welcome SEA + global fam — English only.",
+    "pinned": "HOW TO PLAY → Type 1 = join floor · 0 = leave · dance = move · style/skin = look · GIFTS = fireworks + TOP board. New? Just type 1.",
+    "first60s": "Yo family — Neon Club is LIVE! If you just walked in, type 1 right now and you appear on the dance floor. Free. No download. Type dance to move. Send any gift and we drop fireworks. Let's pack this floor in the next 60 seconds — type 1!"
+  },
+  "secondaryMode": {
+    "id": "fortune",
+    "brand": "Savage Fortune Live",
+    "oneLiner": "Ask anything — AI Master roasts your fate in 10 seconds.",
+    "title": "Savage Fortune Live 🔮 AI roasts your fate in 10s | Ask anything"
+  }
+}

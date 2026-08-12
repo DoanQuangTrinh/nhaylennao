@@ -1,0 +1,45 @@
+{
+  "source": "Grok Imagine",
+  "characters": [
+    {
+      "id": "aya-red",
+      "name": "Aya",
+      "file": "aya-red.jpg",
+      "assetId": "25cd1b2f-357f-4a45-95c2-9665221a65f7",
+      "look": "Glossy red vinyl hoodie + mini dress + black tights + heels",
+      "styleIndex": 0
+    },
+    {
+      "id": "mia-black",
+      "name": "Mia",
+      "file": "mia-black.jpg",
+      "assetId": "20ff193b-64ed-4f78-9eb2-3a12f5e4c7c6",
+      "look": "Black cocktail dress + long hair + strappy heels",
+      "styleIndex": 1
+    },
+    {
+      "id": "ken-casual",
+      "name": "Ken",
+      "file": "ken-casual.jpg",
+      "assetId": "4ba27226-ccdc-404b-84b4-eef433db7c25",
+      "look": "Open striped shirt + blue jeans + sneakers",
+      "styleIndex": 3
+    },
+    {
+      "id": "cyan-neon",
+      "name": "Nova",
+      "file": "cyan-neon.jpg",
+      "assetId": "f53f2313-37e6-4e15-8867-623fbb441908",
+      "look": "Cyan glossy crop jacket + purple skirt + boots",
+      "styleIndex": 5
+    },
+    {
+      "id": "pink-sequin",
+      "name": "Luna",
+      "file": "pink-sequin.jpg",
+      "assetId": "1ea27cd3-1539-495a-876a-83d11d70f062",
+      "look": "Hot pink sequin mini dress + neon hair highlights",
+      "styleIndex": 6
+    }
+  ]
+}

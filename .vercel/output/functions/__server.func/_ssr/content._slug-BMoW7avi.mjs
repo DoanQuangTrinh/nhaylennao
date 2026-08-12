@@ -1,0 +1,103 @@
+import { R as require_jsx_runtime, _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
+import { t as Button } from "./button-DrW3tuWO.mjs";
+import { m as ArrowLeft } from "../_libs/lucide-react.mjs";
+import { n as Route } from "./router-CEsyPKS6.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/content._slug-BMoW7avi.js
+var import_jsx_runtime = require_jsx_runtime();
+var contentDocs = {
+	BRAND: "# Brand — Neon Club Live + Savage Fortune Live\n\nProduct engine: **QuanBar**  \nShow brand (Club): **Neon Club Live**  \nShow brand (Fortune): **Savage Fortune Live**\n\n## One-liners\n\n- Club: Free interactive nightclub — type 1 to join the floor. Gifts unlock fireworks.\n- Fortune: Ask anything — AI Master roasts your fate in 10 seconds.\n\n## Voice\n\n- Spoken English. Short. Energetic. Friendly roast is OK; cruelty is not.\n- Always tell people what to do next: type 1 / dance / gift / ask.\n- Sound busy even at 0 viewers. Never say \"nobody is here.\"\n- Never switch to Vietnamese on Global EN streams.\n\n## Do\n\n- Lead with the action: \"Type 1 right now.\"\n- Celebrate every join and every gift by name.\n- Repeat the pin every few minutes in your own words.\n- Keep promises: if you say fireworks on gift — deliver FX.\n\n## Don't\n\n- Don't lecture, don't read essays, don't apologize for low views.\n- Don't use hard slang that SEA or US viewers won't share.\n- Don't promise real money wins, medical outcomes, or legal advice in Fortune mode.\n- Don't spam the same sentence robotically — rotate hype lines.\n\n## Visual rules\n\n- Neon nightclub: cyan + purple + pink accents, dark stage, readable white text.\n- Big CTA always visible: TYPE 1 TO JOIN.\n- TOP board always visible during Club mode.\n- Fortune mode: AI Master answer card centered, CTA banner for questions.\n- Portrait 1080×1920 for TikTok; landscape 1920×1080 for YouTube optional.\n\n## Host persona (suggested)\n\nName yourself once: \"I'm [Name], your Neon Club host.\"  \nEnergy: night DJ + friendly friend.  \nPace: 1 idea per sentence. Pause for chat.\n",
+	STREAM_TITLES: "# Stream titles (English)\n\nUse as-is or swap your city / niche word. Keep \"TYPE 1\" in Club titles.\n\n## Club — TikTok (portrait energy)\n\n1. TYPE 1 TO JOIN 🕺 Free Interactive Nightclub | Neon Club Live\n2. Type 1 = you appear on the dance floor 🔥 FREE\n3. Interactive Club LIVE — join free, gifts = fireworks\n4. Who's packing the floor tonight? TYPE 1\n5. SEA fam open mic club 🌏 type 1 to dance\n6. Empty floor? Not for long — TYPE 1 NOW\n7. Free nightclub on stream — no download, type 1\n8. Dance battles starting — type 1 + dance\n9. Gift ladder live 🎁 fireworks unlock\n10. Midnight club vibes — type 1 join free\n11. PH/MY/SG hangout 🕺 type 1 on the floor\n12. US night crowd welcome — type 1 to join\n13. New here? Type 1. That's the whole game.\n14. Style parade in 5 — type 1 + style\n15. First 10 to type 1 get shoutouts 🔥\n16. Neon floor open — type 0 to leave anytime\n17. Watchers → dancers. Type 1.\n18. Super Chat / gifts = stage fireworks\n19. Club + chat games all stream\n20. Late night interactive party — TYPE 1\n\n## Club — YouTube\n\n21. Neon Club Live — Interactive Dance Floor (Type 1 to Join)\n22. Free Interactive Nightclub Stream | Chat Commands + Gift FX\n23. Live Dance Floor Overlay — Join Free, Gift for Fireworks\n24. International Nightclub Live — English Only, Type 1\n\n## Fortune — TikTok\n\n25. Savage Fortune Live 🔮 AI roasts your fate in 10s\n26. Ask anything — AI Master answers (roast mode)\n27. Drop your question 🔮 10-second fate roast\n28. Love / money / career — ask in chat NOW\n29. Spiritual but savage 🔮 type your question\n30. Don't ask if you're scared 😈 Fortune Live\n31. SEA late night tarot roast 🔮 ask free\n32. One question = one roast reading\n\n## Fortune — YouTube\n\n33. Savage Fortune Live — AI Tarot Roasts (Ask in Chat)\n34. Ask the AI Master Anything | 10-Second Fate Readings\n35. Live Roast Readings — Love, Career, Chaos\n\n## Backup hooks (swap into titles)\n\n- \"No app needed\"\n- \"Chat controls the floor\"\n- \"English only international\"\n- \"Fireworks for gifts\"\n",
+	THUMBNAIL_TEXT: "# Thumbnail / Shorts overlay text\n\nKeep under 4 words when possible. High contrast. One idea.\n\n## Club\n\n- TYPE 1 TO JOIN\n- FREE DANCE FLOOR\n- YOU ON STREAM\n- GIFTS = FIREWORKS\n- JOIN THE CLUB\n- CHAT CONTROLS THIS\n- PACK THE FLOOR\n- DANCE BATTLE LIVE\n- NO APP NEEDED\n- INTERACTIVE CLUB\n\n## Fortune\n\n- ASK ANYTHING\n- 10s FATE ROAST\n- AI MASTER\n- LOVE OR CHAOS?\n- DON'T ASK IF SCARED\n- DROP YOUR QUESTION\n- SAVAGE FORTUNE\n\n## Safe layout tips\n\n- Text top third or bottom third — not over faces.\n- Neon stroke: cyan or pink on dark plate.\n- Avoid tiny subtitles on TikTok thumbs; big type only.\n- Same face + same neon plate = brand recognition.\n",
+	HOST_SCRIPTS: "# Host scripts — spoken English\n\nRead naturally. Brackets are optional. Pause after every CTA.\n\n## 0-viewer script (still sound alive)\n\n\"Yo — Neon Club is live. If you're watching later, type 1 and you'll still hit the floor when people roll in. Right now I'm warming the stage. Type 1 if you're here. Even one person packs this place.\"\n\n\"Quick rules: type 1 join, 0 leave, dance to move, gift for fireworks. I'm not waiting — floor is open.\"\n\n\"While we fill up: style parade in a minute. If you're shy, just type 1. No cam needed. You appear on my stream.\"\n\n## 1–5 viewers\n\n\"We got a squad. [Name], welcome — you on the floor? Type dance for me. Everyone else: type 1, don't just lurk.\"\n\n\"Five spots look better with five bodies. Type 1. First gift tonight gets fireworks + TOP shoutout.\"\n\n\"Chat is the controller. I just host. Type 1 if you're new. Type 0 if you need to bounce — no stress.\"\n\n## 10+ viewers\n\n\"Floor is heating. If you're new, pin is up: type 1 to join. Gifts climb the TOP board. We're running a dance battle in two minutes — type 1 now or miss the lineup.\"\n\n\"Shoutout TOP gifts. If you're not on the board yet, smallest gift still pops spark FX. Let's go.\"\n\n## First 60 seconds (Club) — default open\n\n\"Family — Neon Club is LIVE! Type 1 right now and you appear on the dance floor. Free. No download. Type dance to move. Send any gift and we drop fireworks. Let's pack this floor in sixty seconds — type 1!\"\n\n## First 60 seconds (Fortune)\n\n\"Savage Fortune is live. Drop your question in chat — love, money, career, chaos. AI Master answers in about ten seconds with a little roast. Entertainment only. First question gets priority. Go.\"\n\n## 60-minute Club rundown\n\n| Min | Block |\n| --- | --- |\n| 0–3 | Open + teach type 1 / 0 / dance / gift |\n| 3–10 | Welcome wave + demo floor if empty |\n| 10–18 | First 10 type-1 challenge |\n| 18–25 | Style parade (type style) |\n| 25–35 | Gift ladder goal (announce number) |\n| 35–45 | Dance battle (host picks 2–4 names) |\n| 45–52 | Open floor + shoutouts |\n| 52–58 | Gift rush + TOP recap |\n| 58–60 | End CTA: follow + next live time + type 1 encore |\n\n## 45-minute Fortune rundown\n\n| Min | Block |\n| --- | --- |\n| 0–2 | Rules: ask in chat, roast-friendly, entertainment only |\n| 2–15 | Queue questions; 1 answer every ~30–45s |\n| 15–20 | Theme: love questions only |\n| 20–30 | Theme: money / career |\n| 30–38 | Wildcard chaos questions |\n| 38–43 | Gift thank-yous + re-read best Q |\n| 43–45 | Follow CTA + next Club night teaser |\n\n## Filler lines (never dead air)\n\n- \"New faces: type 1. Returning: type dance.\"\n- \"I see you lurking — come on the floor.\"\n- \"Gift goal update: we need X more for mega fireworks.\"\n- \"If audio is good, type YES. If you just joined, type 1.\"\n- \"Next game in one minute — type 1 to be eligible.\"\n\n## Closing\n\n\"That's a wrap on Neon Club. Follow so you don't miss the next floor. Pin stays up — type 1 one more time for the encore. Love you — see you tomorrow.\"\n",
+	CHAT_GAMES: "# Chat games (existing commands only)\n\nCommands you can use: `1` / `join`, `0` / `leave`, `dance`, `style`, `skin`, gifts.\n\nNo new backend required — host runs the game socially.\n\n## 1) First 10 type 1\n\n- Announce: \"First 10 to type 1 get name shoutouts.\"\n- Call each name as they join.\n- Optional prize: first gift from those 10 gets double shoutout.\n- Reset: ask everyone type 0, then go again.\n\n## 2) Style parade\n\n- \"Everyone on floor type style twice.\"\n- Host comments on looks (\"Ken went neon, Mia went gold\").\n- Winner = host pick or chat spam their name.\n- Variant: skin only parade.\n\n## 3) Gift goal ladder\n\nAnnounce a ladder on stream:\n\n1. Spark goal — small pop\n2. Confetti goal\n3. Fireworks goal\n4. Mega goal\n\nExample ladder (adjust to your audience):\n\n- 20 diamonds → spark storm\n- 100 → confetti\n- 300 → fireworks\n- 1000 → mega + group dance call\n\nSay progress every 2–3 minutes.\n\n## 4) Dance battles (host-led)\n\n1. Pick 2–4 dancers already on floor.\n2. \"When I say go, type dance.\"\n3. 20-second round. Chat votes by typing a name.\n4. Winner stays; challenger types 1 if not on floor.\n\n## 5) Join–leave musical chairs\n\n- Host plays 15s hype.\n- \"Type 0 now!\" then \"Type 1 to reclaim!\"\n- Last 3 back on floor get shoutouts.\n\n## 6) Silent floor challenge\n\n- \"Nobody type for 10 seconds… OK break — type 1 flood!\"\n- Good for cold starts; creates a visual wave.\n\n## 7) Fortune lightning round (Fortune mode)\n\n- \"One-word questions only: job, crush, move, money.\"\n- Answer fast, rotate names.\n- After 5 answers: \"Gift if that hit.\"\n\n## Host tips\n\n- Explain rules in one breath.\n- Always restate the command word.\n- Never shame non-gifters; invite them to type 1.\n",
+	SHORTS_PIPELINE: "# Shorts pipeline (12–25s)\n\nGoal: every live produces 3 Shorts/Reels the same day.\n\n## Capture while live\n\nMark moments:\n\n1. First big join wave (many type 1)\n2. Any fireworks / mega gift\n3. Funny MC / Fortune roast line\n4. Dance battle vote chaos\n5. Your best energy open (first 60s)\n\n## Cut recipe\n\n- 0.0–0.8s: Hook text on screen (TYPE 1 TO JOIN / ASK ANYTHING)\n- 0.8–8s: Payoff moment (gift FX, roast, battle)\n- 8–15s: Show command clearly (big caption)\n- Last 2s: Follow + LIVE tonight CTA\n\nLength targets: TikTok 12–18s, YT Shorts up to 25s.\n\n## Captions (examples)\n\n- \"Type 1 and you appear on my stream 🕺\"\n- \"She gifted — watch the fireworks\"\n- \"AI roasted his love life in 10 seconds\"\n- \"Free nightclub. No app. Chat only.\"\n\n## Hashtags (rotate, don't spam 30)\n\nClub: #livestream #interactive #nightclub #type1 #fyp #seatiktok  \nFortune: #tarot #airsigns #livereading #roast #fyp\n\n## CTA end card\n\n\"Live tonight — type 1 to join\"  \nor \"Ask your question next live\"\n\n## Batch workflow (30 min post-live)\n\n1. Export 5 raw clips\n2. Pick best 3\n3. Add captions + hook text\n4. Schedule 1 now, 1 in 6h, 1 next morning\n5. Reply to every comment with \"type 1 next live\"\n",
+	POSTING_CALENDAR_14_DAYS: "# 14-day posting calendar\n\nAssumes TikTok-first, English-only Neon Club + 2–3 Fortune nights.\n\nTimezone tips: see PLATFORM_PLAYBOOK.md  \nDefault live length: Club 60m · Fortune 45m\n\n## Daily structure\n\n- 1 live OR 1 heavy content day\n- 3 shorts/day (from live or previous live)\n- 10+ comment replies\n\n## Day-by-day\n\n| Day | Live | Theme | Shorts focus |\n| --- | --- | --- | --- |\n| 1 | Club | Launch night — teach type 1 | Open hook, first gift FX, join wave |\n| 2 | Club | First 10 challenge | Challenge montage, shoutouts |\n| 3 | Fortune | Love questions only | Best roast, reaction face |\n| 4 | Off-cam | Clip day + reply day | Recut day 1–3 |\n| 5 | Club | Style parade | Style swaps, skin parade |\n| 6 | Club | Gift ladder night | Ladder progress, mega FX |\n| 7 | Fortune | Career / money | Sharp 10s answers |\n| 8 | Club | SEA hangout shoutouts | Country waves, type 1 flood |\n| 9 | Club | Dance battles | Battle brackets |\n| 10 | Fortune | Wildcard chaos | Funniest Q |\n| 11 | Club | US evening test slot | Timezone experiment + recap |\n| 12 | Off-cam | Collab Duet/Stitch day | Duet teach type 1 |\n| 13 | Club | Community TOP board night | TOP recap |\n| 14 | Club+Fortune split | 30m Club + 20m Fortune | Best-of week trailer |\n\n## If you can only do 4 lives/week\n\nKeep: Day 1, 3, 6, 9 patterns. Still post 3 shorts daily from archive.\n\n## Metrics to track (simple)\n\n- Peak viewers\n- Joins (type 1 count approx)\n- Gifts total\n- Follows from live\n- Which short got profile visits\n\nDouble down on the format that drives joins + follows, not vanity likes only.\n",
+	PLATFORM_PLAYBOOK: "# Platform playbook — TikTok first, YouTube second\n\n## Priority markets\n\n1. SEA English: PH, MY, SG, IN  \n2. US evening crowd\n\n## Language\n\n100% English on stream, titles, pin, bio, MC, AI.  \nVI profile stays available for local nights — switch profile in host panel.\n\n## TikTok-first growth\n\n- Go live from a phone portrait pipeline or OBS virtual cam into TikTok Live Studio.\n- Overlay: browser source 1080×1920 (or 720×1280 if machine is weak).\n- Pin comment always = HOW TO PLAY.\n- Goal of live #1–5: teach the mechanic, not \"go viral.\"\n- Raid/share with similar interactive hosts when appropriate.\n\n### TikTok time suggestions (host local → audience)\n\n- SEA prime: 20:00–23:00 ICT/PHT  \n- US evening: 20:00–23:00 ET (compute your local offset)  \n- Test one SEA slot + one US slot in week 2.\n\n## YouTube secondary\n\n- Landscape 1920×1080 overlay variant for desktop viewers.\n- Super Chat mapped to gift tiers (see Global EN gift note in config).\n- Longer Club shows OK (60–90m). Upload Shorts from the same live.\n- Stream title can be calmer; put TYPE 1 in first 60 characters.\n\n## Facebook\n\n- Use when your existing graph is there; same overlay.\n- Still English for Global pack nights.\n\n## Conversion loop\n\nLive → teach type 1 → clip Short → Short CTA back to next live → pin teaches again.\n\n## What not to do\n\n- Don't run fake bots or buy viewers.\n- Don't scrape competitors' chats.\n- Don't promise platform algorithm hacks.\n",
+	OBS_SETUP_GLOBAL: "# OBS setup — international presentation\n\n## Sources\n\n1. **Overlay (Browser)**  \n   - URL: your QuanBar host app `/overlay`  \n   - Width/Height:  \n     - TikTok portrait: **1080 × 1920**  \n     - YouTube landscape: **1920 × 1080**  \n   - FPS: 30  \n   - Shutdown source when not visible: off  \n   - Refresh browser when scene becomes active: on (optional)\n\n2. **Camera / game / VTuber** under or beside overlay as you prefer.  \n   Neon Club works best with dark lower-third so dancers read clearly.\n\n3. **MC audio**  \n   - Enable MC audio in host panel.  \n   - Route TTS / AI MC into OBS via system audio or VB-Cable.  \n   - Keep music bed −18 to −24 dB under voice.\n\n## Scene ideas\n\n- **START**: logo + \"LIVE IN 3\" + overlay preview  \n- **LIVE**: camera + overlay  \n- **BRB**: \"Type 1 while I'm back\" still showing overlay floor  \n- **END**: follow CTA card\n\n## Color / readability\n\n- Avoid bright white full-screen backgrounds under overlay text.\n- If dancers wash out, lower game brightness or add dark gradient bar behind floor.\n\n## Checklist before GO LIVE\n\n- [ ] Profile = Global EN  \n- [ ] Mode = Club or Fortune  \n- [ ] Auto-demo floor ON for cold start  \n- [ ] Overlay URL loads, banner says TYPE 1 / ASK ANYTHING  \n- [ ] Pin comment ready  \n- [ ] Title + cover from content pack  \n- [ ] Mic levels clean; music ducked  \n- [ ] Simulator test: type 1, gift 50, see fireworks\n\n## Mobile host (no PC)\n\nIf you only have phone TikTok: run overlay on a second cheap laptop/tablet as browser source into capture card, or use a cloud browser source if your stack supports it. Global EN pack still applies for scripts + titles.\n",
+	PINNED_AND_BIO: "# Pinned comment, bio, end-screen\n\n## Pinned comment (Club)\n\nHOW TO PLAY → Type 1 = join floor · 0 = leave · dance = move · style/skin = look · GIFTS = fireworks + TOP board. New? Just type 1.\n\n## Pinned comment (Fortune)\n\nASK ANYTHING in chat — AI Master answers in ~10s (roast-friendly, entertainment only). Love / money / career / chaos welcome. Gifts appreciated ✨\n\n## Bio (TikTok / YT about short)\n\nNeon Club Live — free interactive nightclub. Type 1 to join the floor. Gifts unlock fireworks. English · SEA + global.\n\nAlt Fortune bio: Savage Fortune Live — ask anything, AI Master roasts your fate in 10s. Entertainment only.\n\n## About / channel description\n\nWelcome to Neon Club Live (powered by QuanBar).  \nThis is an interactive nightclub on livestream. Type 1 to appear on the dance floor. Type dance. Send gifts for fireworks and the TOP board.  \nSecondary show: Savage Fortune Live — drop a question for a fast roast-style reading. Entertainment only. Not medical, legal, or financial advice.  \nEnglish-first. New friends from PH, MY, SG, IN, US — you're home here.\n\n## End-screen CTA (say + text card)\n\n\"Follow now so you catch the next floor. Tomorrow we go live at [time]. Type 1 one more time. Love you — bye.\"\n\nCard text: FOLLOW · TYPE 1 NEXT LIVE · TONIGHT WAS NEON CLUB\n\n## First comment you post as host after going live\n\n\"Type 1 to join 🕺 Rules in pin. Gifts = fireworks. Let's go.\"\n"
+};
+function ContentDocPage() {
+	const { slug } = Route.useParams();
+	const doc = contentDocs[slug];
+	if (!doc) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
+		className: "mx-auto max-w-2xl px-4 py-12 text-center",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+			className: "text-fg",
+			children: ["Doc not found: ", slug]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+			className: "mt-4",
+			asChild: true,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+				to: "/content",
+				children: "All docs"
+			})
+		})]
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("main", {
+		className: "min-h-screen bg-bg px-4 py-8 sm:px-6",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "mx-auto max-w-3xl",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				variant: "ghost",
+				size: "sm",
+				asChild: true,
+				className: "mb-4",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+					to: "/content",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowLeft, { className: "size-4" }), "All docs"]
+				})
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", {
+				className: "panel-card p-6 sm:p-8",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+					className: "font-display text-[10px] uppercase tracking-widest text-accent",
+					children: [
+						"content/global-en/",
+						slug,
+						".md"
+					]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "prose-neon mt-4 space-y-3 text-sm leading-relaxed text-fg",
+					children: doc.split("\n").map((line, i) => {
+						if (line.startsWith("# ")) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+							className: "font-display text-2xl font-bold text-fg",
+							children: line.slice(2)
+						}, i);
+						if (line.startsWith("## ")) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+							className: "mt-6 font-display text-lg font-semibold text-accent",
+							children: line.slice(3)
+						}, i);
+						if (line.startsWith("### ")) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+							className: "mt-4 text-base font-semibold text-fg",
+							children: line.slice(4)
+						}, i);
+						if (line.startsWith("- ")) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", {
+							className: "ml-4 list-disc text-muted marker:text-accent",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "text-fg",
+								children: line.slice(2)
+							})
+						}, i);
+						if (line.startsWith("|")) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("pre", {
+							className: "overflow-x-auto font-mono text-[11px] text-muted",
+							children: line
+						}, i);
+						if (line.trim() === "") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "h-2" }, i);
+						if (line.startsWith("```")) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "text-[10px] uppercase tracking-wider text-muted",
+							children: line
+						}, i);
+						return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "text-muted",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "text-fg/90",
+								children: line
+							})
+						}, i);
+					})
+				})]
+			})]
+		})
+	});
+}
+//#endregion
+export { ContentDocPage as component };
