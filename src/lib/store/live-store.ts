@@ -8,6 +8,12 @@ import {
 } from "@/lib/config/profiles-data";
 import type { ProfileConfig } from "@/lib/config/types";
 
+import { BAR_MENU, VIP_TABLE_TIERS, type DrinkItem } from "@/lib/config/bar-data";
+import { barBeatSynth, playBarSfx, type SfxType } from "@/lib/audio/audio-engine";
+import { speakMcLine, unlockMcSpeech } from "@/lib/audio/mc-speech";
+import { generateAiCommentReply } from "@/lib/ai/gemini-comment-reply";
+import { parseAvatarCommand } from "@/lib/avatar/avatar-parser";
+
 export type Dancer = {
   id: string;
   name: string;
@@ -45,6 +51,21 @@ export type McLine = {
   at: number;
 };
 
+export type DrinkOrder = {
+  id: string;
+  userName: string;
+  drink: DrinkItem;
+  at: number;
+};
+
+export type VipGuest = {
+  userName: string;
+  tierId: "gold" | "platinum" | "diamond";
+  points: number;
+  tableName: string;
+  assignedAt: number;
+};
+
 type LiveState = {
   profileId: string;
   mode: LiveMode;
@@ -52,11 +73,25 @@ type LiveState = {
   top: TopEntry[];
   gifts: GiftEvent[];
   mcLines: McLine[];
+  drinkOrders: DrinkOrder[];
+  vipGuests: VipGuest[];
+  co2JetUntil: number;
+  fireworkActiveUntil: number;
+  laserScannerActive: boolean;
+  barMusicGenre: "vinahouse" | "edm" | "synthwave" | "lounge";
+  barMusicPlaying: boolean;
+  barBpm: number;
   lastHypeAt: number;
   maxFloor: number;
   platformConnected: "none" | "tiktok" | "youtube" | "facebook" | "demo";
   mcAudioEnabled: boolean;
   autoDemo: boolean;
+  aiReplyEnabled: boolean;
+  geminiApiKey: string;
+  geminiModel: string;
+  cooldownMs: number;
+  lastAiReplyAt: number;
+  recentReplies: string[];
   bannerFlash: string | null;
   fortuneAnswer: string | null;
   eventLog: string[];
@@ -68,6 +103,10 @@ type LiveState = {
   setPlatform: (p: LiveState["platformConnected"]) => void;
   setMcAudio: (on: boolean) => void;
   setAutoDemo: (on: boolean) => void;
+  setAiReplyEnabled: (on: boolean) => void;
+  setGeminiApiKey: (key: string) => void;
+  setGeminiModel: (model: string) => void;
+  setCooldownMs: (ms: number) => void;
   processChat: (name: string, text: string, platform?: Dancer["platform"]) => void;
   join: (name: string, platform?: Dancer["platform"], isDemo?: boolean) => void;
   leave: (name: string) => void;
@@ -75,6 +114,14 @@ type LiveState = {
   cycleStyle: (name: string) => void;
   cycleSkin: (name: string) => void;
   sendGift: (name: string, gift: string, value: number) => void;
+  orderDrink: (name: string, drinkId: string) => void;
+  triggerCo2Jet: (durationMs?: number) => void;
+  triggerFirework: (durationMs?: number) => void;
+  toggleLaserScanner: (v?: boolean) => void;
+  setMusicGenre: (genre: "vinahouse" | "edm" | "synthwave" | "lounge") => void;
+  toggleBarMusic: () => void;
+  setBarBpm: (bpm: number) => void;
+  triggerSfx: (type: SfxType) => void;
   pushMc: (text: string) => void;
   tickHype: () => void;
   ensureDemoFloor: () => void;
@@ -162,6 +209,11 @@ export type LiveSnapshot = {
   top: TopEntry[];
   gifts: GiftEvent[];
   mcLines: McLine[];
+  drinkOrders?: DrinkOrder[];
+  vipGuests?: VipGuest[];
+  co2JetUntil?: number;
+  barMusicPlaying?: boolean;
+  barBpm?: number;
   bannerFlash: string | null;
   fortuneAnswer: string | null;
   platformConnected: LiveState["platformConnected"];
@@ -177,11 +229,13 @@ type LiveMeta = {
   fortuneAnswer: string | null;
   at: number;
   rev: number;
+  snapshot?: LiveSnapshot;
 };
 
 function writeMeta(state: LiveState, rev: number) {
   if (typeof window === "undefined") return;
   try {
+    const snap = buildSnapshot(state, rev);
     const meta: LiveMeta = {
       profileId: state.profileId,
       mode: state.mode,
@@ -191,6 +245,7 @@ function writeMeta(state: LiveState, rev: number) {
       fortuneAnswer: state.fortuneAnswer,
       at: Date.now(),
       rev,
+      snapshot: snap,
     };
     localStorage.setItem(META_KEY, JSON.stringify(meta));
   } catch {
@@ -202,8 +257,7 @@ function readMeta(): LiveMeta | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(META_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as LiveMeta;
+    return raw ? (JSON.parse(raw) as LiveMeta) : null;
   } catch {
     return null;
   }
@@ -219,6 +273,11 @@ function buildSnapshot(state: LiveState, rev: number): LiveSnapshot {
     top: state.top,
     gifts: state.gifts,
     mcLines: state.mcLines,
+    drinkOrders: state.drinkOrders,
+    vipGuests: state.vipGuests,
+    co2JetUntil: state.co2JetUntil,
+    barMusicPlaying: state.barMusicPlaying,
+    barBpm: state.barBpm,
     bannerFlash: state.bannerFlash,
     fortuneAnswer: state.fortuneAnswer,
     platformConnected: state.platformConnected,
@@ -235,11 +294,25 @@ export const useLiveStore = create<LiveState>()(
       top: [],
       gifts: [],
       mcLines: [],
+      drinkOrders: [],
+      vipGuests: [],
+      co2JetUntil: 0,
+      fireworkActiveUntil: 0,
+      laserScannerActive: true,
+      barMusicGenre: "vinahouse",
+      barMusicPlaying: false,
+      barBpm: 128,
       lastHypeAt: 0,
       maxFloor: MAX_FLOOR,
       platformConnected: "demo",
-      mcAudioEnabled: false,
+      mcAudioEnabled: true,
       autoDemo: true,
+      aiReplyEnabled: true,
+      geminiApiKey: "",
+      geminiModel: "gemini-2.5-flash",
+      cooldownMs: 3000,
+      lastAiReplyAt: 0,
+      recentReplies: [],
       bannerFlash: null,
       fortuneAnswer: null,
       eventLog: [],
@@ -263,11 +336,18 @@ export const useLiveStore = create<LiveState>()(
         set({ platformConnected });
         flushLiveSync(true);
       },
-      setMcAudio: (mcAudioEnabled) => set({ mcAudioEnabled }),
+      setMcAudio: (mcAudioEnabled) => {
+        if (mcAudioEnabled) unlockMcSpeech();
+        set({ mcAudioEnabled });
+      },
       setAutoDemo: (autoDemo) => {
         set({ autoDemo });
         flushLiveSync(true);
       },
+      setAiReplyEnabled: (aiReplyEnabled) => set({ aiReplyEnabled }),
+      setGeminiApiKey: (geminiApiKey) => set({ geminiApiKey }),
+      setGeminiModel: (geminiModel) => set({ geminiModel }),
+      setCooldownMs: (cooldownMs) => set({ cooldownMs }),
 
       log: (msg) =>
         set((s) => ({
@@ -280,6 +360,9 @@ export const useLiveStore = create<LiveState>()(
           mcLines: [{ id: uid(), text, at: Date.now() }, ...s.mcLines].slice(0, 8),
           bannerFlash: text,
         }));
+        if (get().mcAudioEnabled) {
+          speakMcLine(text);
+        }
         // banner is live UI — push immediately
         flushLiveSync(true);
         window.setTimeout(() => {
@@ -288,20 +371,6 @@ export const useLiveStore = create<LiveState>()(
             flushLiveSync(true);
           }
         }, 4200);
-
-        if (get().mcAudioEnabled && typeof window !== "undefined" && "speechSynthesis" in window) {
-          try {
-            const u = new SpeechSynthesisUtterance(text);
-            const p = get().getProfile();
-            u.lang = p.language === "vi" ? "vi-VN" : "en-US";
-            u.rate = 1.05;
-            if (!window.speechSynthesis.speaking) {
-              window.speechSynthesis.speak(u);
-            }
-          } catch {
-            /* ignore */
-          }
-        }
       },
 
       join: (name, platform = "demo", isDemo = false) => {
@@ -449,10 +518,123 @@ export const useLiveStore = create<LiveState>()(
         get().log(`gift ${n} ${gift} ${value} → wings ${wingTier}`);
       },
 
+      orderDrink: (userName, drinkId) => {
+        const n = normalizeName(userName);
+        const drink = BAR_MENU.find((d) => d.id === drinkId || d.name.toLowerCase().includes(drinkId.toLowerCase())) || BAR_MENU[0]!;
+        const order: DrinkOrder = {
+          id: uid(),
+          userName: n,
+          drink,
+          at: Date.now(),
+        };
+
+        // Ensure customer is on floor
+        if (!get().dancers.some((d) => d.name.toLowerCase() === n.toLowerCase())) {
+          get().join(n, "demo", false);
+        }
+
+        // Calculate VIP table status
+        let vipGuests = get().vipGuests;
+        const totalVipPoints = (get().dancers.find((d) => d.name.toLowerCase() === n.toLowerCase())?.giftedTotal || 0) + drink.vipPoints;
+
+        let claimedTier = VIP_TABLE_TIERS.slice().reverse().find((t) => totalVipPoints >= t.minPoints);
+        if (claimedTier) {
+          const existingIdx = vipGuests.findIndex((v) => v.userName.toLowerCase() === n.toLowerCase());
+          const newVip: VipGuest = {
+            userName: n,
+            tierId: claimedTier.id,
+            points: totalVipPoints,
+            tableName: claimedTier.tableName,
+            assignedAt: Date.now(),
+          };
+          if (existingIdx >= 0) {
+            vipGuests = [...vipGuests];
+            vipGuests[existingIdx] = newVip;
+          } else {
+            vipGuests = [newVip, ...vipGuests].slice(0, 6);
+          }
+        }
+
+        set((s) => ({
+          drinkOrders: [order, ...s.drinkOrders].slice(0, 10),
+          vipGuests,
+        }));
+
+        playBarSfx(drink.sfxKey);
+
+        if (drink.category === "champagne_vip") {
+          get().triggerCo2Jet(3000);
+          get().pushMc(`🍾 VIP CHAMPAGNE! ${n} opened ${drink.name}! 🎉`);
+        } else {
+          get().pushMc(`${drink.icon} ${n} ordered ${drink.name}! Cheers!`);
+        }
+
+        get().log(`drink ${n} ordered ${drink.name}`);
+        flushLiveSync(true);
+      },
+
+      triggerCo2Jet: (durationMs = 2500) => {
+        const until = Date.now() + durationMs;
+        set({ co2JetUntil: until });
+        playBarSfx("co2");
+        get().log(`CO2 Jet fired for ${durationMs}ms`);
+        flushLiveSync(true);
+      },
+
+      triggerFirework: (durationMs = 4000) => {
+        const until = Date.now() + durationMs;
+        set({ fireworkActiveUntil: until });
+        playBarSfx("firework");
+        get().log(`VIP Pyrotechnics Firework fired for ${durationMs}ms`);
+        flushLiveSync(true);
+      },
+
+      toggleLaserScanner: (v) => {
+        const next = v !== undefined ? v : !get().laserScannerActive;
+        set({ laserScannerActive: next });
+        if (next) playBarSfx("laser");
+        get().log(`Laser Scanner ${next ? "enabled" : "disabled"}`);
+        flushLiveSync(true);
+      },
+
+      setMusicGenre: (genre) => {
+        set({ barMusicGenre: genre });
+        const bpmMap = { vinahouse: 140, edm: 128, synthwave: 120, lounge: 115 };
+        get().setBarBpm(bpmMap[genre]);
+        get().log(`Music genre switched to ${genre}`);
+        flushLiveSync(true);
+      },
+
+      toggleBarMusic: () => {
+        const next = !get().barMusicPlaying;
+        set({ barMusicPlaying: next });
+        if (next) {
+          barBeatSynth.start(get().barBpm);
+        } else {
+          barBeatSynth.stop();
+        }
+        get().log(`music ${next ? "started" : "stopped"}`);
+        flushLiveSync(true);
+      },
+
+      setBarBpm: (bpm) => {
+        set({ barBpm: bpm });
+        barBeatSynth.setBpm(bpm);
+        get().log(`BPM set to ${bpm}`);
+        flushLiveSync(true);
+      },
+
+      triggerSfx: (type) => {
+        playBarSfx(type);
+        get().log(`SFX triggered: ${type}`);
+      },
+
       processChat: (name, text, platform = "demo") => {
         const p = get().getProfile();
         const raw = text.trim();
         if (!raw) return;
+
+        const lower = raw.toLowerCase();
 
         if (get().mode === "fortune") {
           if (
@@ -467,12 +649,141 @@ export const useLiveStore = create<LiveState>()(
           }
         }
 
+        // Custom Bar & Drink commands
+        if (lower.startsWith("order ") || lower.startsWith("gọi ") || lower.startsWith("uống ")) {
+          const drinkQuery = lower.replace(/^(order|gọi|uống)\s+/, "");
+          get().orderDrink(name, drinkQuery);
+          return;
+        } else if (lower === "cheers" || lower === "cụng ly" || lower === "zô" || lower === "zo") {
+          get().triggerSfx("cheers");
+          get().pushMc(`🥂 ${normalizeName(name)} cheers with everyone!`);
+          return;
+        } else if (lower === "champagne" || lower === "sâm panh") {
+          get().orderDrink(name, "moet_chandon");
+          return;
+        } else if (lower === "co2" || lower === "khói") {
+          get().triggerCo2Jet(2500);
+          return;
+        } else if (lower === "firework" || lower === "pháo hoa" || lower === "phao hoa") {
+          get().triggerFirework(4000);
+          get().pushMc(`🎆 VIP PYROTECHNICS! ${normalizeName(name)} fired fireworks on stage! 🎉`);
+          return;
+        } else if (lower === "laser" || lower === "đèn laser") {
+          get().toggleLaserScanner();
+          return;
+        } else if (lower === "vinahouse" || lower === "edm" || lower === "synthwave" || lower === "lounge") {
+          get().setMusicGenre(lower as "vinahouse" | "edm" | "synthwave" | "lounge");
+          return;
+        } else if (lower === "angel" || lower === "2042" || lower === "thiên thần" || lower === "thien than") {
+          const n = normalizeName(name);
+          if (!get().dancers.some((d) => d.name.toLowerCase() === n.toLowerCase())) {
+            get().join(n, platform, false);
+          }
+          set((s) => ({
+            dancers: s.dancers.map((d) => (d.name.toLowerCase() === n.toLowerCase() ? { ...d, style: 2042, wingTier: 4 } : d)),
+          }));
+          get().pushMc(`🪽 ANGEL FLIGHT 2042! ${n} transformed into Cyber Angel on stage! ✨`);
+          flushLiveSync(true);
+          return;
+        }
+
+        // ---- 0. KIỂM TRA LỆNH TÙY CHỈNH AVATAR (skin 3, style robot, acc crown, tóc 2, áo 4, đổi hình...) ----
+        const avatarPatch = parseAvatarCommand(raw);
+        if (avatarPatch) {
+          const n = normalizeName(name);
+          if (!get().dancers.some((d) => d.name.toLowerCase() === n.toLowerCase())) {
+            get().join(n, platform, false);
+          }
+          if (avatarPatch.random) {
+            get().cycleStyle(n);
+            get().cycleSkin(n);
+          } else {
+            set((s) => ({
+              dancers: s.dancers.map((d) => {
+                if (d.name.toLowerCase() !== n.toLowerCase()) return d;
+                return {
+                  ...d,
+                  style: avatarPatch.style ? (avatarPatch.style === "robot" ? 1 : avatarPatch.style === "cool" ? 3 : 0) : d.style,
+                  skin: avatarPatch.skin !== undefined ? avatarPatch.skin : d.skin,
+                };
+              }),
+            }));
+          }
+          get().pushMc(`✨ Đã tùy chỉnh avatar 3D cho @${n}!`);
+          get().log(`[Avatar Custom] @${n} updated avatar: ${JSON.stringify(avatarPatch)}`);
+          flushLiveSync(true);
+          return;
+        }
+
+        // ---- 1. KIỂM TRA LỌC PHÍM TẮT SỐ (1, 2, 3, 4, 5...) ----
+        if (/^[1-5]$/.test(raw)) {
+          const num = raw;
+          const n = normalizeName(name);
+          if (num === "1") {
+            get().join(n, platform, false);
+            get().pushMc(`🎮 @${n} bấm Phím 1 -> Lên sàn nhảy! 💃`);
+          } else if (num === "2") {
+            get().cycleStyle(n);
+            get().pushMc(`🎮 @${n} bấm Phím 2 -> Đổi trang phục! ✨`);
+          } else if (num === "3") {
+            get().orderDrink(n, "vinahouse_cocktail");
+            get().pushMc(`🎮 @${n} bấm Phím 3 -> Gọi Cocktail! 🍸`);
+          } else if (num === "4") {
+            get().triggerCo2Jet(2500);
+            get().pushMc(`🎮 @${n} bấm Phím 4 -> Phun khói CO2! 💨`);
+          } else if (num === "5") {
+            get().triggerFirework(4000);
+            get().pushMc(`🎮 @${n} bấm Phím 5 -> Bắn pháo hoa VIP! 🎆`);
+          }
+          get().log(`[Shortcut 3D] @${n} pressed Key ${num} -> Bypass Gemini token`);
+          return;
+        }
+
         if (cmdMatch(raw, p.commands.join)) get().join(name, platform, false);
         else if (cmdMatch(raw, p.commands.leave)) get().leave(name);
         else if (cmdMatch(raw, p.commands.dance)) get().dance(name);
         else if (cmdMatch(raw, p.commands.style)) get().cycleStyle(name);
         else if (cmdMatch(raw, p.commands.skin)) get().cycleSkin(name);
-        else get().log(`chat ${name}: ${raw}`);
+        else {
+          get().log(`chat ${name}: ${raw}`);
+          if (get().aiReplyEnabled) {
+            const now = Date.now();
+            const { lastAiReplyAt, cooldownMs, recentReplies, geminiApiKey, geminiModel, profileId } = get();
+
+            // ---- 2. KIỂM TRA COOLDOWN (KHỐNG CHẾ GIỮA 2 CÂU TRẢ LỜI) ----
+            if (now - lastAiReplyAt < cooldownMs) {
+              get().log(`⏳ [Cooldown] Bỏ qua comment của @${name} do chưa đủ ${cooldownMs / 1000}s`);
+              return;
+            }
+
+            set({ lastAiReplyAt: now });
+
+            unlockMcSpeech();
+            generateAiCommentReply({
+              data: {
+                name,
+                comment: raw,
+                profileId,
+                customApiKey: geminiApiKey,
+                selectedModel: geminiModel,
+                recentReplies: recentReplies.slice(-2),
+              },
+            })
+              .then((res) => {
+                if (res && res.success && res.reply) {
+                  get().pushMc(`🎤 MC: ${res.reply}`);
+                  set((s) => ({
+                    recentReplies: [...s.recentReplies, res.reply].slice(-8),
+                  }));
+                  if (get().mcAudioEnabled) speakMcLine(res.reply);
+                  get().log(`[Gemini AI (${res.provider}${res.modelUsed ? ` - ${res.modelUsed}` : ""})] Replying @${name}: "${res.reply}"`);
+                }
+              })
+              .catch((err) => {
+                console.warn("[Gemini AI Reply Exception]", err);
+              });
+          }
+        }
       },
 
       askFortune: (name, question) => {
@@ -540,6 +851,7 @@ export const useLiveStore = create<LiveState>()(
         platformConnected: s.platformConnected,
         mcAudioEnabled: s.mcAudioEnabled,
         autoDemo: s.autoDemo,
+        geminiApiKey: s.geminiApiKey,
       }),
     },
   ),
@@ -574,6 +886,11 @@ function applySnapshot(data: Partial<LiveSnapshot> & { type?: string; at?: numbe
     if (data.top != null) patch.top = data.top;
     if (data.gifts != null) patch.gifts = data.gifts;
     if (data.mcLines != null) patch.mcLines = data.mcLines;
+    if (data.drinkOrders != null) patch.drinkOrders = data.drinkOrders;
+    if (data.vipGuests != null) patch.vipGuests = data.vipGuests;
+    if (data.co2JetUntil != null) patch.co2JetUntil = data.co2JetUntil;
+    if (data.barMusicPlaying != null) patch.barMusicPlaying = data.barMusicPlaying;
+    if (data.barBpm != null) patch.barBpm = data.barBpm;
     if ("bannerFlash" in data) patch.bannerFlash = data.bannerFlash ?? null;
     if ("fortuneAnswer" in data) patch.fortuneAnswer = data.fortuneAnswer ?? null;
     if (data.platformConnected != null) {
@@ -651,30 +968,24 @@ function pullMetaIfNewer() {
   if (applyingRemote) return;
   const meta = readMeta();
   if (!meta) return;
-  if (meta.at <= lastMetaAt && meta.rev <= localRev) return;
+  if (meta.at <= lastMetaAt && meta.rev <= localRev && localRev > 0) return;
 
-  const cur = useLiveStore.getState();
-  const modeDiff = meta.mode !== cur.mode;
-  const profileDiff = meta.profileId !== cur.profileId;
-  const bannerDiff = meta.bannerFlash !== cur.bannerFlash;
-  const fortuneDiff = meta.fortuneAnswer !== cur.fortuneAnswer;
-  if (!modeDiff && !profileDiff && !bannerDiff && !fortuneDiff) {
-    lastMetaAt = Math.max(lastMetaAt, meta.at);
-    return;
-  }
-
-  applySnapshot({
-    type: "snapshot",
-    rev: meta.rev,
-    at: meta.at,
-    profileId: meta.profileId,
-    mode: meta.mode,
-    platformConnected: meta.platformConnected,
-    autoDemo: meta.autoDemo,
-    bannerFlash: meta.bannerFlash,
-    fortuneAnswer: meta.fortuneAnswer,
-  });
   lastMetaAt = meta.at;
+  if (meta.snapshot) {
+    applySnapshot(meta.snapshot);
+  } else {
+    applySnapshot({
+      type: "snapshot",
+      rev: meta.rev,
+      at: meta.at,
+      profileId: meta.profileId,
+      mode: meta.mode,
+      platformConnected: meta.platformConnected,
+      autoDemo: meta.autoDemo,
+      bannerFlash: meta.bannerFlash,
+      fortuneAnswer: meta.fortuneAnswer,
+    });
+  }
 }
 
 export function initLiveSync() {
