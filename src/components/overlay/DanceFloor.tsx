@@ -183,16 +183,19 @@ export function DanceFloor({ className, preview = false }: Props) {
         display: "block",
       });
 
-      const camera = new THREE.PerspectiveCamera(
-        preview ? 42 : 38,
-        w / h,
-        0.1,
-        140,
-      );
+      const aspect = w / h;
+      const defaultFov = preview ? 42 : 38;
+      const initialFov =
+        aspect < 1.0
+          ? Math.min(70, Math.max(54, 2 * Math.atan(Math.tan((defaultFov * Math.PI) / 360) / aspect) * (180 / Math.PI)))
+          : defaultFov;
+      const camera = new THREE.PerspectiveCamera(initialFov, aspect, 0.1, 140);
+
       const lookAt =
         typeof window !== "undefined"
           ? new URLSearchParams(window.location.search).get("look")
           : null;
+      const isPortrait = aspect < 1.0;
       const homePos =
         lookAt === "door"
           ? new THREE.Vector3(8.05, 2.35, 6.55)
@@ -201,8 +204,8 @@ export function DanceFloor({ className, preview = false }: Props) {
             : lookAt === "ball"
               ? new THREE.Vector3(1.15, 6.35, 4.85)
               : preview
-                ? new THREE.Vector3(0, 6.6, 19)
-                : new THREE.Vector3(0, 7.15, 21.4);
+                ? new THREE.Vector3(0, 6.6, isPortrait ? 22.5 : 19)
+                : new THREE.Vector3(0, isPortrait ? 8.2 : 7.15, isPortrait ? 25.5 : 21.4);
       const homeLook =
         lookAt === "door"
           ? new THREE.Vector3(11.45, 1.25, 3.5)
@@ -848,7 +851,13 @@ export function DanceFloor({ className, preview = false }: Props) {
           const nw = Math.max(mount.clientWidth, 320);
           const nh = Math.max(mount.clientHeight, 240);
           const ndpr = Math.min(window.devicePixelRatio || 1, dprCap);
-          camera.aspect = nw / nh;
+          const newAspect = nw / nh;
+          camera.aspect = newAspect;
+          const defaultFov = preview ? 42 : 38;
+          camera.fov =
+            newAspect < 1.0
+              ? Math.min(70, Math.max(54, 2 * Math.atan(Math.tan((defaultFov * Math.PI) / 360) / newAspect) * (180 / Math.PI)))
+              : defaultFov;
           camera.updateProjectionMatrix();
           renderer.setPixelRatio(ndpr);
           renderer.setSize(nw, nh, false);
