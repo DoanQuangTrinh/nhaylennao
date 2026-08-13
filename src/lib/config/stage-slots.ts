@@ -70,67 +70,6 @@ export const STAGE = {
   },
 } as const satisfies Record<string, StageSlot>;
 
-export const MOBILE_STAGE = {
-  dj: {
-    id: "dj",
-    name: "DJ",
-    x: 0,
-    y: 0.85,
-    z: -3.8,
-    yaw: 0,
-    scale: 1.25,
-  },
-  mc: {
-    id: "mc",
-    name: "MC",
-    x: -2.3,
-    y: 0.56,
-    z: -3.1,
-    yaw: 0.15,
-    scale: 1.05,
-  },
-  pole: {
-    id: "lisa",
-    name: "Lisa",
-    x: 2.3,
-    y: 0.5,
-    z: -3.1,
-    yaw: -0.15,
-    scale: 1.15,
-  },
-  bartender: {
-    id: "bar5",
-    name: "VIP",
-    x: 0,
-    y: 3.32,
-    z: -5.2,
-    yaw: 0,
-    scale: 1.02,
-  },
-  guardL: {
-    id: "guard-l",
-    name: "Bảo vệ",
-    x: -3.3,
-    y: 0,
-    z: -0.8,
-    yaw: 0.25,
-    scale: 1.15,
-  },
-  guardR: {
-    id: "guard-r",
-    name: "Bảo vệ",
-    x: 3.3,
-    y: 0,
-    z: -0.8,
-    yaw: -0.25,
-    scale: 1.15,
-  },
-} as const satisfies Record<string, StageSlot>;
-
-export function getStage(aspectRatio?: string) {
-  return aspectRatio === "9:16" ? MOBILE_STAGE : STAGE;
-}
-
 export const BAR_STATION = {
   centerX: 0,
   /** Guest-facing front of the counter */
