@@ -26,7 +26,7 @@ function setupPayload(model) {
       systemInstruction: {
         parts: [
           {
-            text: "Bạn là MC quán bar Neon Club. Nói tiếng Việt, giọng hype, ngắn. Trả lời người đang nói trên mic.",
+            text: "Bạn là Nam MC Bar & Nightclub số 1 Việt Nam - cực kỳ ngầu, cháy hết mình, quẩy sung và thần thái đỉnh cao! Khi đáp lời khán giả: Hãy phán bằng tiếng Việt siêu CHẤT, bùng nổ năng lượng, siêu ngắn gọn (chỉ 1 câu, tối đa 15 từ)!",
           },
         ],
       },
@@ -35,61 +35,54 @@ function setupPayload(model) {
 }
 
 function openGemini(apiKey) {
+  const key = apiKey || process.env.GEMINI_API_KEY || "";
   return new Promise((resolve, reject) => {
-    let i = 0;
-    const tryNext = () => {
-      if (i >= MODELS.length) {
-        reject(new Error("Không mở được BidiGenerateContent với các model Realtime Gemini"));
+    const model = MODELS[0];
+    const url = `${GEMINI_WS}?key=${encodeURIComponent(key)}`;
+    const gemini = new WebSocket(url);
+    let done = false;
+
+    const fail = (err) => {
+      if (done) return;
+      done = true;
+      try {
+        gemini.close();
+      } catch {
+        /* ignore */
+      }
+      reject(err);
+    };
+
+    const timer = setTimeout(() => fail(new Error("Timeout mở WS Gemini")), 10000);
+
+    gemini.on("open", () => {
+      gemini.send(setupPayload(model));
+    });
+
+    gemini.on("message", (raw) => {
+      if (done) return;
+      let msg;
+      try {
+        msg = parseGemini(raw);
+      } catch {
         return;
       }
-      const model = MODELS[i++];
-      const url = `${GEMINI_WS}?key=${encodeURIComponent(apiKey)}`;
-      const gemini = new WebSocket(url);
-      let done = false;
-
-      const fail = (err) => {
-        if (done) return;
+      if (msg.setupComplete || msg.serverContent || Object.keys(msg).length > 0) {
         done = true;
-        try {
-          gemini.close();
-        } catch {
-          /* ignore */
-        }
-        tryNext();
-      };
+        clearTimeout(timer);
+        resolve({ gemini, model });
+        return;
+      }
+      if (msg.error) fail(new Error(msg.error.message || "setup error"));
+    });
 
-      const timer = setTimeout(() => fail(new Error("Timeout mở WS Gemini")), 10000);
-
-      gemini.on("open", () => {
-        gemini.send(setupPayload(model));
-      });
-
-      gemini.on("message", (raw) => {
-        if (done) return;
-        let msg;
-        try {
-          msg = parseGemini(raw);
-        } catch {
-          return;
-        }
-        if (msg.setupComplete || msg.serverContent || Object.keys(msg).length > 0) {
-          done = true;
-          clearTimeout(timer);
-          resolve({ gemini, model });
-          return;
-        }
-        if (msg.error) fail(new Error(msg.error.message || "setup error"));
-      });
-
-      gemini.on("error", (err) => fail(err || new Error("ws error")));
-      gemini.on("close", (code, reason) => {
-        if (!done) {
-          const reasonStr = reason ? reason.toString() : `Close code ${code}`;
-          fail(new Error(`WebSocket đóng: ${reasonStr}`));
-        }
-      });
-    };
-    tryNext();
+    gemini.on("error", (err) => fail(err || new Error("ws error")));
+    gemini.on("close", (code, reason) => {
+      if (!done) {
+        const reasonStr = reason ? reason.toString() : `Close code ${code}`;
+        fail(new Error(`WebSocket đóng: ${reasonStr}`));
+      }
+    });
   });
 }
 

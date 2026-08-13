@@ -134,7 +134,7 @@ const CHANNEL = "quanbar-live-sync-v2";
 const PERSIST_KEY = "quanbar-live-v4";
 /** Lightweight key always written on mode/profile change — overlay polls this */
 const META_KEY = "quanbar-live-meta";
-const MAX_FLOOR = 9999;
+const MAX_FLOOR = 32;
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -383,6 +383,16 @@ export const useLiveStore = create<LiveState>()(
         }
 
         const currentDancers = get().dancers;
+        let nextDancers = [...currentDancers];
+
+        if (nextDancers.length >= MAX_FLOOR) {
+          const removeIdx = nextDancers.findIndex((d) => d.isDemo || (!d.giftedTotal && !d.wingTier));
+          if (removeIdx >= 0) {
+            nextDancers.splice(removeIdx, 1);
+          } else {
+            nextDancers.shift();
+          }
+        }
 
         const dancer = normalizeDancer({
           id: uid(),
@@ -395,7 +405,8 @@ export const useLiveStore = create<LiveState>()(
           joinedAt: Date.now(),
         });
 
-        set({ dancers: [...currentDancers, dancer] });
+        nextDancers.push(dancer);
+        set({ dancers: nextDancers });
         flushLiveSync(true);
 
         if (!isDemo) {

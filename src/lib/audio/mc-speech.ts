@@ -85,21 +85,11 @@ export function speakMcLine(text: string, _lang = "vi-VN") {
   if (!spoken) return;
   unlockMcSpeech();
 
-  if (isGeminiBidiLive()) {
+  // Always use direct browser WebSocket (0 HTTP requests)!
+  if (isGeminiBidiLive() || geminiKey) {
     void sendGeminiBidiText(spoken, geminiKey);
     return;
   }
-
-  if (!geminiKey) return;
-
-  void (async () => {
-    try {
-      const res = await speakGeminiLive({ data: { text: spoken, apiKey: geminiKey } });
-      if (res?.success && res.audioBase64) await playPcm24k(res.audioBase64);
-    } catch {
-      /* no default voice */
-    }
-  })();
 }
 
 export function isMcSpeechUnlocked() {

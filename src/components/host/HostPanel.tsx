@@ -228,8 +228,12 @@ export function HostPanel() {
     ensureDemoFloor();
     const hype = window.setInterval(() => tickHype(), 15_000);
     let unprog: (() => void) | undefined;
+    let lastProgressTime = 0;
     void import("@/lib/three/gltf").then(({ onGltfProgress }) => {
       unprog = onGltfProgress((url, loaded, total) => {
+        const now = Date.now();
+        if (now - lastProgressTime < 500) return;
+        lastProgressTime = now;
         const name = url.split("/").pop() ?? url;
         setGltfStatus(
           `Đang tải ${name}… ${total ? Math.round((loaded / total) * 100) : 0}%`,
@@ -910,33 +914,56 @@ export function HostPanel() {
                   </Button>
                   <Button
                     size="sm"
-                    variant={geminiLiveOn ? "neon" : "secondary"}
+                    variant={geminiLiveOn || isGeminiBidiLive() ? "neon" : "secondary"}
                     disabled={geminiLiveBusy}
                     onClick={async () => {
                       unlockMcSpeech();
+                      const key = apiKeyInput.trim() || geminiApiKey || "";
+                      if (geminiLiveOn || isGeminiBidiLive()) {
+                        await stopGeminiBidi();
+                        setGeminiLiveOn(false);
+                        setGeminiLiveModel(null);
+                        toast.success("Đã ngắt kết nối Gemini Live WebSocket");
+                        return;
+                      }
+                      if (key) {
+                        setGeminiApiKey(key);
+                        setGeminiLiveKey(key);
+                      }
                       setGeminiLiveBusy(true);
                       try {
-                        const key = apiKeyInput.trim() || geminiApiKey;
-                        if (key) {
-                          setGeminiApiKey(key);
-                          setGeminiLiveKey(key);
-                        }
-                        const res = await connectGeminiLive({ data: { apiKey: key } });
-                        setGeminiLiveOn(!!res.connected);
-                        setGeminiLiveModel(res.model);
-                        if (res.connected) {
-                          toast.success(`Gemini Live Audio: ${res.model || "connected"}`);
-                        } else {
-                          toast.error(res.error || "Không kết nối Gemini Live");
-                        }
+                        const targetModel = geminiModel || "gemini-2.5-flash-native-audio-preview-09-2025";
+                        await startGeminiBidi(key, targetModel, {
+                          onStatus: (s) => {
+                            setBidiStatus(s);
+                            if (s.includes("Connected") || s.includes("⚡")) {
+                              setGeminiLiveOn(true);
+                              setGeminiLiveModel(targetModel);
+                            }
+                          },
+                          onError: (e) => {
+                            setBidiStatus(e);
+                            toast.error(e);
+                            setGeminiLiveOn(false);
+                          },
+                          onTranscript: (t) => setBidiStatus(t),
+                        });
+                        setGeminiLiveOn(true);
+                        setGeminiLiveModel(targetModel);
+                        toast.success(`Đã mở trực tiếp WebSocket Gemini Live (${targetModel})!`);
                       } catch (err: any) {
-                        toast.error(err?.message || "Lỗi Gemini Live");
+                        setGeminiLiveOn(false);
+                        toast.error(err?.message || "Không thể mở WebSocket Gemini Live");
                       } finally {
                         setGeminiLiveBusy(false);
                       }
                     }}
                   >
-                    {geminiLiveBusy ? "Đang nối WS…" : geminiLiveOn ? "Live Audio ON" : "Nối Gemini Live WS"}
+                    {geminiLiveBusy
+                      ? "Đang mở WS…"
+                      : geminiLiveOn || isGeminiBidiLive()
+                      ? "Live Audio ON (Đã nối WS)"
+                      : "Nối Gemini Live WS"}
                   </Button>
                 </div>
                 <p className="text-[11px] text-muted">

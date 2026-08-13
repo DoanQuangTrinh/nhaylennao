@@ -125,123 +125,110 @@ export async function startGeminiBidi(
   handlers: BidiHandlers = {},
 ) {
   await stopGeminiBidi();
-  const key = apiKey.trim();
+  const key = (apiKey || "").trim();
   if (!key) throw new Error("Thiếu Gemini API key");
-
-  // Build candidate models array: preferredModel first, followed by remaining models
-  const candidates = [
-    preferredModel,
-    ...BIDI_GEMINI_MODELS.map((m) => m.id).filter((id) => id !== preferredModel),
-  ];
 
   playCtx = new AudioContext({ sampleRate: 24000 });
   await playCtx.resume();
   playTime = 0;
 
-  let lastError: Error | null = null;
   let connectedModel = "";
+  const modelId = preferredModel;
 
-  for (const modelId of candidates) {
-    try {
-      const cleanModelId = modelId.startsWith("models/") ? modelId : `models/${modelId}`;
-      handlers.onStatus?.(`Đang kết nối Gemini Live (${modelId})...`);
+  try {
+    const cleanModelId = modelId.startsWith("models/") ? modelId : `models/${modelId}`;
+    handlers.onStatus?.(`Đang kết nối Gemini Live (${modelId})...`);
 
-      const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(key)}`;
-      const ws = new window.WebSocket(url);
-      sock = ws;
+    const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(key)}`;
+    const ws = new window.WebSocket(url);
+    sock = ws;
 
-      await new Promise<void>((resolve, reject) => {
-        let isResolved = false;
+    await new Promise<void>((resolve, reject) => {
+      let isResolved = false;
 
-        const timeoutTimer = window.setTimeout(() => {
-          if (!isResolved) {
-            try {
-              ws.close();
-            } catch {
-              /* ignore */
-            }
-            reject(new Error(`Timeout kết nối model ${modelId}`));
+      const timeoutTimer = window.setTimeout(() => {
+        if (!isResolved) {
+          try {
+            ws.close();
+          } catch {
+            /* ignore */
           }
-        }, 10000);
+          reject(new Error(`Timeout kết nối model ${modelId}`));
+        }
+      }, 10000);
 
-        ws.onopen = () => {
-          handlers.onStatus?.(`Đã kết nối WS, đang gửi Setup (${cleanModelId})...`);
-          const setupMessage = {
-            setup: {
-              model: cleanModelId,
-              generationConfig: {
-                responseModalities: ["AUDIO", "TEXT"],
-                speechConfig: {
-                  voiceConfig: {
-                    prebuiltVoiceConfig: {
-                      voiceName: "Puck",
-                    },
+      ws.onopen = () => {
+        handlers.onStatus?.(`Đã kết nối WS, đang gửi Setup (${cleanModelId})...`);
+        const setupMessage = {
+          setup: {
+            model: cleanModelId,
+            generationConfig: {
+              responseModalities: ["AUDIO"],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: {
+                    voiceName: "Puck",
                   },
                 },
               },
-              systemInstruction: {
-                parts: [
-                  {
-                    text: "Bạn là MC Bar quẩy cực kỳ năng động và cuồng nhiệt tại quán Bar Neon. Hãy trả lời các bình luận của khán giả siêu ngắn gọn (tối đa 1 câu), đầy năng lượng, hài hước và sôi động!",
-                  },
-                ],
-              },
             },
-          };
-          ws.send(JSON.stringify(setupMessage));
+            inputAudioTranscription: {},
+            outputAudioTranscription: {},
+            systemInstruction: {
+              parts: [
+                {
+                  text: "Bạn là Nam MC Bar & Nightclub số 1 Việt Nam - cực kỳ ngầu, cháy hết mình, quẩy sung và thần thái đỉnh cao! Khi trả lời bình luận của khán giả: Hãy đáp lại bằng tiếng Việt siêu CHẤT, bùng nổ năng lượng, tự nhiên như MC đứng trên sân khấu Bar Neon! Trả lời siêu ngắn gọn (chỉ 1 câu, tối đa 15 từ), cuốn hút và tạo không khí quẩy tưng bừng!",
+                },
+              ],
+            },
+          },
         };
+        ws.send(JSON.stringify(setupMessage));
+      };
 
-        ws.onerror = () => {
+      ws.onerror = () => {
+        if (!isResolved) {
+          window.clearTimeout(timeoutTimer);
+          reject(new Error(`Lỗi kết nối WebSocket với ${modelId}`));
+        }
+      };
+
+      ws.onclose = (event) => {
+        if (!isResolved) {
+          window.clearTimeout(timeoutTimer);
+          const reason = event.reason ? `: ${event.reason}` : ` (Mã: ${event.code})`;
+          reject(new Error(`Model ${modelId} ngắt kết nối${reason}`));
+        }
+      };
+
+      ws.onmessage = async (ev) => {
+        const msg = await parseWsData(ev.data);
+        if (!msg) return;
+
+        if (msg.error) {
           if (!isResolved) {
             window.clearTimeout(timeoutTimer);
-            reject(new Error(`Lỗi kết nối WebSocket với ${modelId}`));
+            reject(new Error(msg.error.message || `Lỗi setup model ${modelId}`));
           }
-        };
+          return;
+        }
 
-        ws.onclose = (event) => {
-          if (!isResolved) {
-            window.clearTimeout(timeoutTimer);
-            const reason = event.reason ? `: ${event.reason}` : ` (Mã: ${event.code})`;
-            reject(new Error(`Model ${modelId} ngắt kết nối${reason}`));
-          }
-        };
-
-        ws.onmessage = async (ev) => {
-          const msg = await parseWsData(ev.data);
-          if (!msg) return;
-
-          if (msg.error) {
-            if (!isResolved) {
-              window.clearTimeout(timeoutTimer);
-              reject(new Error(msg.error.message || `Lỗi setup model ${modelId}`));
-            }
-            return;
-          }
-
-          if (msg.setupComplete || msg.serverContent || Object.keys(msg).length > 0) {
-            isResolved = true;
-            window.clearTimeout(timeoutTimer);
-            connectedModel = modelId;
-            resolve();
-          }
-        };
-      });
-
-      // Break loop if connection succeeded
-      break;
-    } catch (err: any) {
-      lastError = err;
-      try {
-        sock?.close();
-      } catch {
-        /* ignore */
-      }
-      sock = null;
+        if (msg.setupComplete || msg.serverContent || Object.keys(msg).length > 0) {
+          isResolved = true;
+          window.clearTimeout(timeoutTimer);
+          connectedModel = modelId;
+          resolve();
+        }
+      };
+    });
+  } catch (err: any) {
+    try {
+      sock?.close();
+    } catch {
+      /* ignore */
     }
-  }
-
-  if (!sock || !connectedModel) {
-    const errorMsg = lastError?.message || "Tất cả các mô hình Gemini Bidi đều không thể kết nối.";
+    sock = null;
+    const errorMsg = err?.message || "Không thể kết nối Gemini Bidi.";
     handlers.onError?.(errorMsg);
     throw new Error(errorMsg);
   }

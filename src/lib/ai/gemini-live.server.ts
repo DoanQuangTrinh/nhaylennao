@@ -162,17 +162,19 @@ function openSocket(apiKey: string, model: string): Promise<void> {
           setup: {
             model: `models/${model}`,
             generationConfig: {
-              responseModalities: ["AUDIO", "TEXT"],
+              responseModalities: ["AUDIO"],
               speechConfig: {
                 voiceConfig: {
                   prebuiltVoiceConfig: { voiceName: "Puck" },
                 },
               },
             },
+            inputAudioTranscription: {},
+            outputAudioTranscription: {},
             systemInstruction: {
               parts: [
                 {
-                  text: "Bạn là MC quán bar Neon Club. Chỉ đọc to đúng lời được giao, tiếng Việt, giọng hype, ngắn. Không hỏi lại.",
+                  text: "Bạn là Nam MC Bar & Nightclub số 1 Việt Nam - cực kỳ ngầu, cháy hết mình, quẩy sung và thần thái đỉnh cao! Khi đọc lời chào hay bình luận: Hãy phán bằng tiếng Việt siêu CHẤT, bùng nổ năng lượng, siêu ngắn gọn (chỉ 1 câu, tối đa 15 từ), cuốn hút ra loa!",
                 },
               ],
             },
@@ -229,7 +231,7 @@ function openSocket(apiKey: string, model: string): Promise<void> {
 }
 
 export async function connectGeminiLiveImpl(apiKey: string): Promise<GeminiLiveStatus> {
-  const key = apiKey.trim();
+  const key = (apiKey || process.env.GEMINI_API_KEY || "").trim();
   if (!key) {
     lastError = "Thiếu Gemini API Key";
     return { connected: false, model: null, error: lastError };
@@ -248,17 +250,15 @@ export async function connectGeminiLiveImpl(apiKey: string): Promise<GeminiLiveS
       ready = false;
     }
     activeKey = key;
-    let last: Error | null = null;
-    for (const model of MODELS) {
-      try {
-        await openSocket(key, model);
-        return { connected: true, model: activeModel, error: null };
-      } catch (err: any) {
-        last = err instanceof Error ? err : new Error(String(err));
-      }
+    const targetModel = MODELS[0]; // Thử 1 lần kết nối duy nhất, không tự kết nối sang model khác
+    try {
+      await openSocket(key, targetModel);
+      return { connected: true, model: activeModel, error: null };
+    } catch (err: any) {
+      const last = err instanceof Error ? err : new Error(String(err));
+      lastError = last.message || "Không kết nối được Gemini Live";
+      return { connected: false, model: null, error: lastError };
     }
-    lastError = last?.message || "Không kết nối được Gemini Live";
-    return { connected: false, model: null, error: lastError };
   } catch (err: any) {
     lastError = err?.message || String(err);
     return { connected: false, model: null, error: lastError };
