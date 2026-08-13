@@ -306,6 +306,7 @@ export async function sendGeminiBidiText(text: string, apiKey?: string) {
   }
 
   if (sock?.readyState === WebSocket.OPEN) {
+    if (playCtx) playTime = playCtx.currentTime;
     const textMessage = {
       clientContent: {
         turns: [

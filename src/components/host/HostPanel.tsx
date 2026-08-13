@@ -183,6 +183,7 @@ export function HostPanel() {
   const [floorKey, setFloorKey] = useState(0);
   const [gltfStatus, setGltfStatus] = useState("Sàn đang chờ…");
   const [showScripts, setShowScripts] = useState(false);
+  const [show3dPreview, setShow3dPreview] = useState(false);
 
   const [charMode, setCharModeState] = useState<"stl" | "glb" | "human" | "photo">(
     () => {
@@ -454,6 +455,13 @@ export function HostPanel() {
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
+              variant={show3dPreview ? "neon" : "outline"}
+              onClick={() => setShow3dPreview(!show3dPreview)}
+            >
+              {show3dPreview ? "Tắt xem trước 3D" : "⚡ Bật xem trước 3D"}
+            </Button>
+            <Button
+              size="sm"
               variant={charMode === "glb" ? "neon" : "secondary"}
               onClick={() => setCharMode("glb")}
             >
@@ -484,15 +492,32 @@ export function HostPanel() {
           </div>
         </div>
         <div className="h-[min(46vh,360px)] w-full">
-          <Suspense
-            fallback={
-              <div className="flex h-full items-center justify-center bg-bg text-xs text-muted">
-                Đang mở sàn 3D…
+          {show3dPreview ? (
+            <Suspense
+              fallback={
+                <div className="flex h-full items-center justify-center bg-bg text-xs text-muted">
+                  Đang mở sàn 3D…
+                </div>
+              }
+            >
+              <DanceFloorClient key={floorKey} preview className="h-full w-full" />
+            </Suspense>
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-3 bg-bg/60 p-6 text-center">
+              <div className="rounded-full bg-accent/10 p-3 text-accent">
+                <Users className="size-6" />
               </div>
-            }
-          >
-            <DanceFloorClient key={floorKey} preview className="h-full w-full" />
-          </Suspense>
+              <div>
+                <p className="text-sm font-semibold text-fg">Đã tối ưu hóa máy chủ & trình duyệt!</p>
+                <p className="mt-1 text-xs text-muted max-w-md">
+                  Sàn 3D đang chạy mượt mà trên tab <b>Overlay (`http://localhost:8080/overlay.html`)</b>. Tắt xem trước 3D ở bảng điều khiển để tiết kiệm 100% CPU/RAM, chống đứng trang!
+                </p>
+              </div>
+              <Button size="sm" variant="neon" onClick={() => setShow3dPreview(true)}>
+                Bật xem trước 3D tại đây
+              </Button>
+            </div>
+          )}
         </div>
         <div className="flex flex-wrap gap-2 border-t border-border px-5 py-3">
           <Button size="sm" variant="outline" onClick={() => ensureDemoFloor()}>

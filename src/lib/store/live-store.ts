@@ -788,7 +788,6 @@ export const useLiveStore = create<LiveState>()(
                   set((s) => ({
                     recentReplies: [...s.recentReplies, res.reply].slice(-8),
                   }));
-                  if (get().mcAudioEnabled) speakMcLine(res.reply);
                   get().log(`[Gemini AI (${res.provider}${res.modelUsed ? ` - ${res.modelUsed}` : ""})] Replying @${name}: "${res.reply}"`);
                 }
               })
