@@ -311,8 +311,3 @@ export function disposeGltfCache() {
   draco = null;
   loader = null;
 }
-
-if (typeof window !== "undefined") {
-  // Preload all 3D GLB models into memory so 0 HTTP GET calls happen when dancers join!
-  void preloadGltf(USER_3D_GLBS as unknown as string[]);
-}
