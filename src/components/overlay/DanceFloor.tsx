@@ -20,7 +20,7 @@ import { CLUB_GLTF, FLOOR_KINDS, preloadGltf } from "@/lib/three/gltf";
 import { createStlCharacter } from "@/lib/three/stl";
 import { buildClubVenue } from "@/lib/three/buildClubVenue";
 import { createClubComposer } from "@/lib/three/postfx";
-import { STAGE } from "@/lib/config/stage-slots";
+import { STAGE, getStage } from "@/lib/config/stage-slots";
 
 type PersonRig = {
   id: string;
@@ -106,23 +106,29 @@ function hash01(s: string): number {
 function scatterSlot(
   id: string,
   occupied: Array<{ x: number; z: number }>,
+  aspectRatio = "9:16",
 ): { x: number; z: number; yaw: number } {
+  const isMobile = aspectRatio === "9:16";
+  const maxX = isMobile ? 2.7 : 4.7;
+  const minZ = isMobile ? 0.6 : 0.35;
+  const maxZ = isMobile ? 4.8 : 3.8;
+  const stageCfg = getStage(aspectRatio);
+
   let x = 0;
   let z = 1.2;
   let yaw = 0;
   for (let attempt = 0; attempt < 16; attempt += 1) {
     const a = hash01(`${id}:x:${attempt}`);
     const b = hash01(`${id}:z:${attempt}`);
-    x = (a - 0.5) * 9.4;
-    z = 0.35 + (b - 0.5) * 7.4;
-    const farBooth = (x - STAGE.dj.x) ** 2 + (z - STAGE.dj.z) ** 2 > 5.4;
-    const farMc = (x - STAGE.mc.x) ** 2 + (z - STAGE.mc.z) ** 2 > 16;
-    const farPole = (x - STAGE.pole.x) ** 2 + (z - STAGE.pole.z) ** 2 > 5.2;
-    const farBar = z > -5.1;
-    const clear = occupied.every((p) => (p.x - x) ** 2 + (p.z - z) ** 2 > 1.7);
-    if (farBooth && farMc && farPole && farBar && clear) break;
+    x = (a - 0.5) * (maxX * 2);
+    z = minZ + b * (maxZ - minZ);
+    const farBooth = (x - stageCfg.dj.x) ** 2 + (z - stageCfg.dj.z) ** 2 > 3.2;
+    const farMc = (x - stageCfg.mc.x) ** 2 + (z - stageCfg.mc.z) ** 2 > 2.5;
+    const farPole = (x - stageCfg.pole.x) ** 2 + (z - stageCfg.pole.z) ** 2 > 2.5;
+    const clear = occupied.every((p) => (p.x - x) ** 2 + (p.z - z) ** 2 > 1.4);
+    if (farBooth && farMc && farPole && clear) break;
   }
-  yaw = hash01(`${id}:yaw`) * Math.PI * 2;
+  yaw = isMobile ? (hash01(`${id}:yaw`) - 0.5) * 0.4 : hash01(`${id}:yaw`) * Math.PI * 2;
   return { x, z, yaw };
 }
 
@@ -425,35 +431,36 @@ export function DanceFloor({ className, preview = false }: Props) {
       };
 
       if (!preview) {
-        void spawnTalent("dj", "DJ", "miku", STAGE.dj.x, STAGE.dj.z, 0x7ad7ff, {
-          y: STAGE.dj.y,
-          scale: STAGE.dj.scale,
-          yaw: STAGE.dj.yaw,
+        const stage = getStage(useLiveStore.getState().aspectRatio);
+        void spawnTalent("dj", "DJ", "miku", stage.dj.x, stage.dj.z, 0x7ad7ff, {
+          y: stage.dj.y,
+          scale: stage.dj.scale,
+          yaw: stage.dj.yaw,
         });
-        void spawnTalent("mc", "MC", "freddie", STAGE.mc.x, STAGE.mc.z, 0xffe4b0, {
-          y: STAGE.mc.y,
-          scale: STAGE.mc.scale,
-          yaw: STAGE.mc.yaw,
+        void spawnTalent("mc", "MC", "freddie", stage.mc.x, stage.mc.z, 0xffe4b0, {
+          y: stage.mc.y,
+          scale: stage.mc.scale,
+          yaw: stage.mc.yaw,
         });
-        void spawnTalent("lisa", "Lisa", "lisa", STAGE.pole.x, STAGE.pole.z, 0xff8ab8, {
-          y: STAGE.pole.y,
-          scale: STAGE.pole.scale,
-          yaw: STAGE.pole.yaw,
+        void spawnTalent("lisa", "Lisa", "lisa", stage.pole.x, stage.pole.z, 0xff8ab8, {
+          y: stage.pole.y,
+          scale: stage.pole.scale,
+          yaw: stage.pole.yaw,
         });
-        void spawnTalent("bar5", "VIP", "bar5", STAGE.bartender.x, STAGE.bartender.z, 0xa78bfa, {
-          y: STAGE.bartender.y,
-          scale: STAGE.bartender.scale,
-          yaw: STAGE.bartender.yaw,
+        void spawnTalent("bar5", "VIP", "bar5", stage.bartender.x, stage.bartender.z, 0xa78bfa, {
+          y: stage.bartender.y,
+          scale: stage.bartender.scale,
+          yaw: stage.bartender.yaw,
         });
-        void spawnTalent("guard-l", "Bảo vệ", "gangster", STAGE.guardL.x, STAGE.guardL.z, 0xc4a574, {
-          y: STAGE.guardL.y,
-          scale: STAGE.guardL.scale,
-          yaw: STAGE.guardL.yaw,
+        void spawnTalent("guard-l", "Bảo vệ", "gangster", stage.guardL.x, stage.guardL.z, 0xc4a574, {
+          y: stage.guardL.y,
+          scale: stage.guardL.scale,
+          yaw: stage.guardL.yaw,
         });
-        void spawnTalent("guard-r", "Bảo vệ", "gangster", STAGE.guardR.x, STAGE.guardR.z, 0xc4a574, {
-          y: STAGE.guardR.y,
-          scale: STAGE.guardR.scale,
-          yaw: STAGE.guardR.yaw,
+        void spawnTalent("guard-r", "Bảo vệ", "gangster", stage.guardR.x, stage.guardR.z, 0xc4a574, {
+          y: stage.guardR.y,
+          scale: stage.guardR.scale,
+          yaw: stage.guardR.yaw,
         });
       }
 
@@ -473,7 +480,7 @@ export function DanceFloor({ className, preview = false }: Props) {
             .map((p) => ({ x: p.targetX, z: p.targetZ }));
           const slot = existing
             ? { x: existing.targetX, z: existing.targetZ, yaw: existing.faceYaw }
-            : scatterSlot(d.id, occupied);
+            : scatterSlot(d.id, occupied, useLiveStore.getState().aspectRatio);
           const place = (created: PersonRig) => {
             created.targetX = slot.x;
             created.targetZ = slot.z;
