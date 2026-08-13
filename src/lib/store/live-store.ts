@@ -95,6 +95,7 @@ type LiveState = {
   bannerFlash: string | null;
   fortuneAnswer: string | null;
   eventLog: string[];
+  aspectRatio: "9:16" | "16:9" | "4:3";
   syncRev: number;
 
   getProfile: () => ProfileConfig;
@@ -107,6 +108,7 @@ type LiveState = {
   setGeminiApiKey: (key: string) => void;
   setGeminiModel: (model: string) => void;
   setCooldownMs: (ms: number) => void;
+  setAspectRatio: (ratio: "9:16" | "16:9" | "4:3") => void;
   processChat: (name: string, text: string, platform?: Dancer["platform"]) => void;
   join: (name: string, platform?: Dancer["platform"], isDemo?: boolean) => void;
   leave: (name: string) => void;
@@ -316,6 +318,7 @@ export const useLiveStore = create<LiveState>()(
       bannerFlash: null,
       fortuneAnswer: null,
       eventLog: [],
+      aspectRatio: "9:16",
       syncRev: 0,
 
       getProfile: () => getProfile(get().profileId),
@@ -348,6 +351,10 @@ export const useLiveStore = create<LiveState>()(
       setGeminiApiKey: (geminiApiKey) => set({ geminiApiKey }),
       setGeminiModel: (geminiModel) => set({ geminiModel }),
       setCooldownMs: (cooldownMs) => set({ cooldownMs }),
+      setAspectRatio: (aspectRatio) => {
+        set({ aspectRatio });
+        flushLiveSync(true);
+      },
 
       log: (msg) =>
         set((s) => ({

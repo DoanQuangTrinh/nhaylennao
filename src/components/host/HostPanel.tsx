@@ -156,6 +156,8 @@ export function HostPanel() {
   const ensureDemoFloor = useLiveStore((s) => s.ensureDemoFloor);
   const tickHype = useLiveStore((s) => s.tickHype);
   const pushMc = useLiveStore((s) => s.pushMc);
+  const aspectRatio = useLiveStore((s) => s.aspectRatio || "9:16");
+  const setAspectRatio = useLiveStore((s) => s.setAspectRatio);
 
   const [simName, setSimName] = useState("Minh");
   const [simText, setSimText] = useState("1");
@@ -432,9 +434,57 @@ export function HostPanel() {
             </Button>
           </div>
 
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border/50">
+            <span className="text-xs font-semibold text-fg">Chế độ tỉ lệ khung hình (Aspect Ratio):</span>
+            <div className="flex items-center gap-1.5 rounded-lg border border-border bg-bg/80 p-1">
+              <button
+                type="button"
+                className={`rounded px-3 py-1.5 text-xs font-bold transition ${
+                  aspectRatio === "9:16"
+                    ? "bg-accent text-bg shadow-md"
+                    : "text-muted hover:text-fg"
+                }`}
+                onClick={() => {
+                  setAspectRatio("9:16");
+                  toast.success("📱 Đã chuyển sang Khung DỌC 9:16 (Full Screen TikTok Mobile)");
+                }}
+              >
+                📱 9:16 (Dọc TikTok Mobile)
+              </button>
+              <button
+                type="button"
+                className={`rounded px-3 py-1.5 text-xs font-bold transition ${
+                  aspectRatio === "16:9"
+                    ? "bg-accent text-bg shadow-md"
+                    : "text-muted hover:text-fg"
+                }`}
+                onClick={() => {
+                  setAspectRatio("16:9");
+                  toast.success("🖥️ Đã chuyển sang Khung NGANG 16:9 (PC Desktop)");
+                }}
+              >
+                🖥️ 16:9 (Ngang PC)
+              </button>
+              <button
+                type="button"
+                className={`rounded px-3 py-1.5 text-xs font-bold transition ${
+                  aspectRatio === "4:3"
+                    ? "bg-accent text-bg shadow-md"
+                    : "text-muted hover:text-fg"
+                }`}
+                onClick={() => {
+                  setAspectRatio("4:3");
+                  toast.success("📺 Đã chuyển sang Khung 4:3 (Vuông)");
+                }}
+              >
+                📺 4:3 (Vuông)
+              </button>
+            </div>
+          </div>
+
           <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/40">
             <div className="text-xs text-muted">
-              💡 <b>Mẹo TikTok LIVE Studio:</b> Nếu nhập URL bị báo "không hợp lệ", hãy bấm <b>"Mở cửa sổ Overlay"</b> bên cạnh, sau đó trên TikTok Studio chọn <b>Quay Cửa Sổ (Window Capture)</b> chọn cửa sổ Chrome đang mở Sàn 3D!
+              💡 <b>Mẹo TikTok LIVE Studio:</b> Chọn chế độ <b>9:16 Dọc TikTok Mobile</b> ở trên, sau đó dán link <code>http://localhost:8080/overlay.html</code> vào TikTok LIVE Studio để hiển thị chuẩn full màn hình dọc điện thoại!
             </div>
             <Button variant="neon" size="sm" asChild>
               <a href="/overlay" target="_blank" rel="noreferrer">

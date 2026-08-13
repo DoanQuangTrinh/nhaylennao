@@ -8,6 +8,7 @@ import { initLiveSync, useLiveStore } from "@/lib/store/live-store";
 export default function OverlayPage() {
   const ensureDemoFloor = useLiveStore((s) => s.ensureDemoFloor);
   const tickHype = useLiveStore((s) => s.tickHype);
+  const aspectRatio = useLiveStore((s) => s.aspectRatio || "9:16");
 
   useEffect(() => {
     const stop = initLiveSync();
@@ -20,11 +21,21 @@ export default function OverlayPage() {
   }, [ensureDemoFloor, tickHype]);
 
   return (
-    <main className="relative h-screen w-screen overflow-hidden bg-[#05050a]">
-      <DanceFloorClient className="absolute inset-0 h-full w-full" />
-      <OverlayChrome />
-      <BarMenuOverlay />
-      <GiftFx />
+    <main className="relative flex h-screen w-screen items-center justify-center overflow-hidden bg-[#05050a]">
+      <div
+        className={`relative transition-all duration-300 ${
+          aspectRatio === "9:16"
+            ? "aspect-[9/16] h-full max-h-screen w-auto shadow-2xl border border-white/10"
+            : aspectRatio === "4:3"
+              ? "aspect-[4/3] h-full max-h-screen w-auto shadow-2xl border border-white/10"
+              : "h-full w-full"
+        }`}
+      >
+        <DanceFloorClient className="absolute inset-0 h-full w-full" />
+        <OverlayChrome />
+        <BarMenuOverlay />
+        <GiftFx />
+      </div>
     </main>
   );
 }
