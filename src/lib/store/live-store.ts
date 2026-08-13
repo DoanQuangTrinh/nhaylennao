@@ -378,7 +378,10 @@ export const useLiveStore = create<LiveState>()(
         const existing = get().dancers.find((d) => d.name.toLowerCase() === n.toLowerCase());
         if (existing) {
           if (isDemo && !existing.isDemo) return;
-          if (!existing.dancing) get().dance(n);
+          existing.dancing = true;
+          existing.joinedAt = Date.now();
+          set({ dancers: [...get().dancers] });
+          flushLiveSync(true);
           return;
         }
 
@@ -728,27 +731,30 @@ export const useLiveStore = create<LiveState>()(
           return;
         }
 
-        // ---- 1. KIỂM TRA LỌC PHÍM TẮT SỐ (1, 2, 3, 4, 5...) ----
-        if (/^[1-5]$/.test(raw)) {
-          const num = raw;
+        // ---- 1. KIỂM TRA LỌC PHÍM TẮT SỐ VÀ CÂU LỆNH LÊN SÀN (1, 1., 1!, số 1, lên sàn...) ----
+        const numMatch = raw.match(/\b([1-5])\b/) || raw.match(/^([1-5])/);
+        const isJoinCmd = /1|lên|len|vào|vao|nhảy|nhay|dance/i.test(raw);
+
+        if (numMatch || isJoinCmd) {
+          const num = numMatch ? numMatch[1] : "1";
           const n = normalizeName(name);
-          if (num === "1") {
+          if (num === "1" || isJoinCmd) {
             get().join(n, platform, false);
-            get().pushMc(`🎮 @${n} bấm Phím 1 -> Lên sàn nhảy! 💃`);
+            get().pushMc(`🎮 @${n} phán Phím 1 -> Lên sàn nhảy bùng nổ! 💃`);
           } else if (num === "2") {
             get().cycleStyle(n);
-            get().pushMc(`🎮 @${n} bấm Phím 2 -> Đổi trang phục! ✨`);
+            get().pushMc(`🎮 @${n} phán Phím 2 -> Đổi trang phục cực chất! ✨`);
           } else if (num === "3") {
             get().orderDrink(n, "vinahouse_cocktail");
-            get().pushMc(`🎮 @${n} bấm Phím 3 -> Gọi Cocktail! 🍸`);
+            get().pushMc(`🎮 @${n} phán Phím 3 -> Gọi Cocktail quẩy! 🍸`);
           } else if (num === "4") {
             get().triggerCo2Jet(2500);
-            get().pushMc(`🎮 @${n} bấm Phím 4 -> Phun khói CO2! 💨`);
+            get().pushMc(`🎮 @${n} phán Phím 4 -> Phun khói CO2 cháy sàn! 💨`);
           } else if (num === "5") {
             get().triggerFirework(4000);
-            get().pushMc(`🎮 @${n} bấm Phím 5 -> Bắn pháo hoa VIP! 🎆`);
+            get().pushMc(`🎮 @${n} phán Phím 5 -> Bắn pháo hoa VIP! 🎆`);
           }
-          get().log(`[Shortcut 3D] @${n} pressed Key ${num} -> Bypass Gemini token`);
+          get().log(`[Shortcut 3D] @${n} matched Key ${num} -> Join/Action`);
           return;
         }
 
