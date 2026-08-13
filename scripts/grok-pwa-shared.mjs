@@ -253,7 +253,18 @@ export function createHeadInjector(
       pending.push(buf);
       const joined = Buffer.concat(pending);
       const at = joined.indexOf(HEAD_CLOSE);
-      if (at === -1) return [];
+      if (at === -1) {
+        // Multi-chunk head injection: if </head> has not appeared yet, emit
+        // everything except the last 16 bytes (in case </head> is split across chunks)
+        // so bytes stream immediately to the client without any buffering delay!
+        if (joined.length > 16) {
+          const safeLen = joined.length - 16;
+          const emit = joined.subarray(0, safeLen);
+          pending = [joined.subarray(safeLen)];
+          return [emit];
+        }
+        return [];
+      }
       done = true;
       pending = [];
       const head = injectGrokPwaHead(

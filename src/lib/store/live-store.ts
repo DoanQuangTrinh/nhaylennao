@@ -134,7 +134,7 @@ const CHANNEL = "quanbar-live-sync-v2";
 const PERSIST_KEY = "quanbar-live-v4";
 /** Lightweight key always written on mode/profile change — overlay polls this */
 const META_KEY = "quanbar-live-meta";
-const MAX_FLOOR = 12;
+const MAX_FLOOR = 9999;
 
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -381,10 +381,9 @@ export const useLiveStore = create<LiveState>()(
           if (!existing.dancing) get().dance(n);
           return;
         }
-        if (get().dancers.length >= get().maxFloor) {
-          get().log(`Floor full — ${n} wait`);
-          return;
-        }
+
+        const currentDancers = get().dancers;
+
         const dancer = normalizeDancer({
           id: uid(),
           name: n,
@@ -395,7 +394,10 @@ export const useLiveStore = create<LiveState>()(
           isDemo,
           joinedAt: Date.now(),
         });
-        set((s) => ({ dancers: [...s.dancers, dancer] }));
+
+        set({ dancers: [...currentDancers, dancer] });
+        flushLiveSync(true);
+
         if (!isDemo) {
           const p = get().getProfile();
           get().pushMc(

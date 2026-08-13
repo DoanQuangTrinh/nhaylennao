@@ -1,38 +1,26 @@
-import { useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { DanceFloor } from "@/components/overlay/DanceFloor";
-import { GiftFx } from "@/components/overlay/GiftFx";
-import { OverlayChrome } from "@/components/overlay/OverlayChrome";
-import { initLiveSync, useLiveStore } from "@/lib/store/live-store";
+
+// Route module stays tiny — routeTree.gen imports this for every page.
+const OverlayPage = lazy(() => import("@/components/overlay/OverlayPage"));
+
+function Boot() {
+  return (
+    <div className="flex h-screen w-screen items-center justify-center bg-[#05050a] text-sm text-white/60">
+      Opening club floor…
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/overlay")({
-  component: OverlayPage,
+  ssr: false,
+  pendingComponent: Boot,
+  component: () => (
+    <Suspense fallback={<Boot />}>
+      <OverlayPage />
+    </Suspense>
+  ),
   head: () => ({
     meta: [{ title: "Neon Club Live · 3D OBS Overlay" }],
   }),
 });
-
-function OverlayPage() {
-  const ensureDemoFloor = useLiveStore((s) => s.ensureDemoFloor);
-  const tickHype = useLiveStore((s) => s.tickHype);
-
-  useEffect(() => {
-    const stop = initLiveSync();
-    ensureDemoFloor();
-    // Hype is throttled inside tickHype (≥45s) — poll infrequently
-    const hype = window.setInterval(() => tickHype(), 15_000);
-    return () => {
-      stop();
-      window.clearInterval(hype);
-    };
-  }, [ensureDemoFloor, tickHype]);
-
-  return (
-    <main className="relative h-screen w-screen overflow-hidden bg-[#05050a]">
-      {/* Single WebGL context only — dual R3F canvas was causing stutter */}
-      <DanceFloor className="absolute inset-0 h-full w-full" />
-      <OverlayChrome />
-      <GiftFx />
-    </main>
-  );
-}

@@ -16,7 +16,8 @@ export type ClubComposer = {
 
 /**
  * Club post stack — gentle bloom so neon edges glow without white-washing avatars.
- * Defaults: strength 0.28 · radius 0.35 · threshold 0.82
+ * Defaults: strength 0.11 · radius 0.26 · threshold 0.94
+ * High threshold keeps avatars out of bloom; only neon lasers glow.
  */
 export function createClubComposer(
   renderer: THREE.WebGLRenderer,
@@ -37,9 +38,9 @@ export function createClubComposer(
 
   const bloom = new UnrealBloomPass(
     new THREE.Vector2(size.x * dpr, size.y * dpr),
-    opts.strength ?? 0.28,
-    opts.radius ?? 0.35,
-    opts.threshold ?? 0.82,
+    opts.strength ?? 0.11,
+    opts.radius ?? 0.26,
+    opts.threshold ?? 0.94,
   );
   composer.addPass(bloom);
 

@@ -1,5 +1,8 @@
-@import "tailwindcss";
+/* Don't auto-scan the repo — public/*.glb is hundreds of MB and Tailwind
+   v4 will read unknown extensions as source, locking the dev server. */
+@import "tailwindcss" source(none);
 @import "tw-animate-css";
+@source "./**/*.{ts,tsx}";
 
 @theme {
   --color-bg: #07070c;
@@ -21,8 +24,8 @@
   --color-neon-pink: #ff2d95;
   --color-neon-blue: #00e5ff;
   --color-neon-purple: #b14cff;
-  --font-sans: "DM Sans", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Orbitron", "DM Sans", system-ui, sans-serif;
+  --font-sans: "Segoe UI", system-ui, sans-serif;
+  --font-display: "Segoe UI", system-ui, sans-serif;
   --radius: 0.75rem;
 }
 

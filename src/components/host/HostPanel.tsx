@@ -173,6 +173,7 @@ export function HostPanel() {
   const [bidiMicOn, setBidiMicOn] = useState(false);
   const [bidiStatus, setBidiStatus] = useState("");
   const [tiktokSessionId, setTiktokSessionId] = useState("");
+  const [tikToolsApiKey, setTikToolsApiKey] = useState("");
   const [liveStatus, setLiveStatus] = useState<"idle" | "connecting" | "live" | "error">("idle");
   const [liveError, setLiveError] = useState<string | null>(null);
   const [liveViewers, setLiveViewers] = useState(0);
@@ -261,6 +262,10 @@ export function HostPanel() {
 
   useEffect(() => {
     if (liveStatus !== "live") return;
+    // If Tik.tools Cloud WebSocket is active, all events stream directly to browser.
+    // Disable HTTP server polling completely to prevent server load & lag!
+    if (tikToolsApiKey.trim()) return;
+
     let cancelled = false;
     const tick = async () => {
       try {
@@ -311,7 +316,8 @@ export function HostPanel() {
             });
           }
         }
-        if (snap.status === "idle" || snap.status === "error") {
+        // Only update status if status changed to avoid re-render state loops
+        if (snap.status !== "live" && (snap.status === "idle" || snap.status === "error")) {
           setLiveStatus(snap.status);
           if (snap.errorMessage) setLiveError(snap.errorMessage);
         }
@@ -320,12 +326,12 @@ export function HostPanel() {
       }
     };
     void tick();
-    const id = window.setInterval(() => void tick(), 700);
+    const id = window.setInterval(() => void tick(), 3500);
     return () => {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [liveStatus]);
+  }, [liveStatus, tikToolsApiKey]);
 
   const livePackText = [
     `TIÊU ĐỀ:\n${p.livePack.title}`,

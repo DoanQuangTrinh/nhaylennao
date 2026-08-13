@@ -6,6 +6,7 @@ export function getRouter() {
   return createRouter({
     routeTree,
     defaultErrorComponent: AppErrorComponent,
+    defaultNotFoundComponent: () => <div className="p-4 text-white">Page Not Found</div>,
     scrollRestoration: true,
     defaultPreload: "intent",
   });

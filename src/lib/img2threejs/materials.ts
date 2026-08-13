@@ -88,15 +88,33 @@ export function beamMat(color: number, opacity = 0.045) {
 }
 
 export const OUTFIT: number[] = [
-  0x22d3ee, 0xc084fc, 0xf472b6, 0x34d399, 0xfbbf24, 0xfb7185, 0x60a5fa, 0xe879f9,
+  0xf8fafc, // Anime Pure White
+  0xf472b6, // Sakura Neon Pink
+  0x22d3ee, // Electric Cyan
+  0xc084fc, // Royal Violet
+  0xfacc15, // Golden Glow
+  0xef4444, // Crimson Red
+  0x34d399, // Emerald Mint
+  0xf97316, // Vibrant Orange
 ];
 
 export const SKIN: number[] = [
-  0xf5d0b0, 0xe8b88a, 0xc68642, 0x8d5524, 0xffe0bd, 0xd4a574, 0xb56b45, 0x6b3f2a,
+  0xfff1e6, // Porcelain Anime Skin
+  0xf5d0b0, // Warm Peach Skin
+  0xe8b88a, // Soft Olive Skin
+  0xc68642, // Bronze Tan Skin
+  0xffe0bd, // Light Cream Anime Skin
+  0xd4a574, // Golden Tan Skin
 ];
 
 export const HAIR: number[] = [
-  0x1a0a14, 0x2a1810, 0x4a2060, 0x0a2a3a, 0xc04060, 0x1a1a2a, 0xf0d080, 0x203050,
+  0xf8fafc, // Anime Platinum Silver White
+  0xf472b6, // Sakura Anime Pink
+  0x38bdf8, // Anime Cyan Sky Blue
+  0x111827, // Midnight Jet Black
+  0xfacc15, // Golden Blonde
+  0xa855f7, // Royal Purple Anime Hair
+  0xe11d48, // Crimson Red Hair
 ];
 
 /** Enable cast/receive shadows on a subtree */

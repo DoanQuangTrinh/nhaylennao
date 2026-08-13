@@ -4,9 +4,14 @@ const GEMINI_WS =
   "wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent";
 
 const MODELS = [
-  "gemini-2.5-flash-preview-native-audio-dialog",
-  "gemini-2.5-flash-native-audio-preview-12-2025",
   "gemini-2.5-flash-native-audio-preview-09-2025",
+  "gemini-2.5-flash-native-audio-latest",
+  "gemini-2.5-flash-native-audio-preview-12-2025",
+  "gemini-2.5-flash-preview-native-audio-dialog",
+  "gemini-3.1-flash-live-preview",
+  "gemini-3.5-live-translate-preview",
+  "gemini-live-2.5-flash-preview",
+  "gemini-2.0-flash-exp",
 ];
 
 export type GeminiLiveStatus = {
@@ -104,7 +109,7 @@ function attachSocket(socket: WebSocket) {
     } catch {
       return;
     }
-    if (msg.setupComplete) {
+    if (msg.setupComplete || (msg.serverContent && !ready)) {
       ready = true;
       lastError = null;
       pump();
@@ -148,7 +153,7 @@ function openSocket(apiKey: string, model: string): Promise<void> {
       } catch {
         /* ignore */
       }
-      reject(new Error("Không mở được WebSocket Gemini Live"));
+      reject(new Error(`Timeout mở WebSocket Gemini Live với model ${model}`));
     }, 12000);
 
     socket.on("open", () => {
@@ -156,18 +161,12 @@ function openSocket(apiKey: string, model: string): Promise<void> {
         JSON.stringify({
           setup: {
             model: `models/${model}`,
-            responseModalities: ["AUDIO"],
             generationConfig: {
-              responseModalities: ["AUDIO"],
+              responseModalities: ["AUDIO", "TEXT"],
               speechConfig: {
                 voiceConfig: {
-                  prebuiltVoiceConfig: { voiceName: "Kore" },
+                  prebuiltVoiceConfig: { voiceName: "Puck" },
                 },
-              },
-            },
-            speechConfig: {
-              voiceConfig: {
-                prebuiltVoiceConfig: { voiceName: "Kore" },
               },
             },
             systemInstruction: {
@@ -190,7 +189,7 @@ function openSocket(apiKey: string, model: string): Promise<void> {
       } catch {
         return;
       }
-      if (msg.setupComplete) {
+      if (msg.setupComplete || msg.serverContent || Object.keys(msg).length > 0) {
         settled = true;
         clearTimeout(timer);
         activeModel = model;
@@ -208,7 +207,7 @@ function openSocket(apiKey: string, model: string): Promise<void> {
         } catch {
           /* ignore */
         }
-        reject(new Error(msg.error?.message || "Gemini Live setup lỗi"));
+        reject(new Error(msg.error?.message || `Lỗi setup model ${model}`));
       }
     });
 
@@ -219,11 +218,12 @@ function openSocket(apiKey: string, model: string): Promise<void> {
       reject(err);
     });
 
-    socket.on("close", () => {
+    socket.on("close", (code, reason) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      reject(new Error("Gemini Live đóng trước khi setup xong"));
+      const reasonText = reason ? reason.toString() : `Mã đóng ${code}`;
+      reject(new Error(`Model ${model} đóng kết nối (${reasonText})`));
     });
   });
 }

@@ -1,0 +1,309 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/build/three.module.js",
+          "fflate": "/node_modules/fflate/esm/browser.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <pre id="log">starting</pre>
+    <script type="module">
+      import * as THREE from "three";
+      import { FBXLoader } from "/node_modules/three/examples/jsm/loaders/FBXLoader.js";
+      import { GLTFExporter } from "/node_modules/three/examples/jsm/exporters/GLTFExporter.js";
+
+      const log = (m) => {
+        document.getElementById("log").textContent = String(m);
+      };
+
+      const loadTex = (url, colorSpace) =>
+        new Promise((resolve, reject) => {
+          new THREE.TextureLoader().load(
+            url,
+            (tex) => {
+              tex.colorSpace = colorSpace;
+              tex.flipY = false;
+              tex.wrapS = THREE.RepeatWrapping;
+              tex.wrapT = THREE.RepeatWrapping;
+              tex.needsUpdate = true;
+              resolve(tex);
+            },
+            undefined,
+            () => resolve(null),
+          );
+        });
+
+      const toCanvas = (tex, colorSpace) => {
+        if (!tex) return null;
+        const img = tex.image;
+        if (!img) return null;
+        const w = img.width || img.videoWidth || 0;
+        const h = img.height || img.videoHeight || 0;
+        if (!w || !h) return null;
+        try {
+          const c = document.createElement("canvas");
+          c.width = w;
+          c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          const out = new THREE.CanvasTexture(c);
+          out.colorSpace = colorSpace ?? tex.colorSpace ?? THREE.SRGBColorSpace;
+          out.wrapS = tex.wrapS;
+          out.wrapT = tex.wrapT;
+          out.flipY = false;
+          out.needsUpdate = true;
+          return out;
+        } catch {
+          return null;
+        }
+      };
+
+      const MIKU_PALETTE = {
+        hair: 0x39c5bb,
+        hairTip: 0x8af5ee,
+        hairDark: 0x1f8f88,
+        skin: 0xf4c2a8,
+        shirt: 0x3a3a42,
+        skirt: 0x141418,
+        sleeve: 0x2a2a32,
+        boot: 0x0c0c10,
+        tie: 0x39c5bb,
+        eye: 0x102226,
+        lip: 0xd08088,
+      };
+
+      const namedColor = (name) => {
+        const n = String(name || "").toLowerCase();
+        if (!n) return null;
+        if (n.includes("hair") || n.includes("kami") || n.includes("twin"))
+          return MIKU_PALETTE.hair;
+        if (n.includes("skin") || n.includes("face") || n.includes("hada"))
+          return MIKU_PALETTE.skin;
+        if (n.includes("eye") || n.includes("iris")) return MIKU_PALETTE.eye;
+        if (n.includes("tie") || n.includes("necktie")) return MIKU_PALETTE.tie;
+        return null;
+      };
+
+      const isHairName = (name) => {
+        const n = String(name || "").toLowerCase();
+        return n.includes("hair") || n.includes("kami") || n.includes("twin");
+      };
+
+      const paintMikuMesh = (mesh, srcs) => {
+        const geo = mesh.geometry;
+        const pos = geo?.attributes?.position;
+        if (!pos) return false;
+        mesh.updateWorldMatrix(true, false);
+        const mtx = mesh.matrixWorld;
+        const world = [];
+        const tmp = new THREE.Vector3();
+        const box = new THREE.Box3();
+        for (let i = 0; i < pos.count; i++) {
+          tmp.fromBufferAttribute(pos, i).applyMatrix4(mtx);
+          world.push(tmp.x, tmp.y, tmp.z);
+          box.expandByPoint(tmp);
+        }
+        const size = box.getSize(new THREE.Vector3());
+        if (size.y < 1e-4) return false;
+        const hairOf = new Uint8Array(pos.count);
+        const groups = geo.groups?.length
+          ? geo.groups
+          : [{ start: 0, count: pos.count, materialIndex: 0 }];
+        const idx = geo.index;
+        for (const gr of groups) {
+          const hair = isHairName(srcs[gr.materialIndex]?.name);
+          if (idx) {
+            for (let i = gr.start; i < gr.start + gr.count; i++) {
+              hairOf[idx.getX(i)] = hair ? 1 : 0;
+            }
+          } else {
+            for (let i = gr.start; i < gr.start + gr.count; i++) {
+              hairOf[i] = hair ? 1 : 0;
+            }
+          }
+        }
+        const colors = new Float32Array(pos.count * 3);
+        const skin = new THREE.Color(MIKU_PALETTE.skin);
+        const shirt = new THREE.Color(MIKU_PALETTE.shirt);
+        const skirt = new THREE.Color(MIKU_PALETTE.skirt);
+        const sleeve = new THREE.Color(MIKU_PALETTE.sleeve);
+        const boot = new THREE.Color(MIKU_PALETTE.boot);
+        const tie = new THREE.Color(MIKU_PALETTE.tie);
+        const eye = new THREE.Color(MIKU_PALETTE.eye);
+        const lip = new THREE.Color(MIKU_PALETTE.lip);
+        const rootC = new THREE.Color(MIKU_PALETTE.hairDark);
+        const midC = new THREE.Color(MIKU_PALETTE.hair);
+        const tipC = new THREE.Color(MIKU_PALETTE.hairTip);
+        const hx = Math.max(size.x, 1e-4);
+        const cx = (box.min.x + box.max.x) * 0.5;
+        const faceZ = box.max.z - size.z * 0.22;
+        const c = new THREE.Color();
+        for (let i = 0; i < pos.count; i++) {
+          const x = world[i * 3];
+          const y = world[i * 3 + 1];
+          const z = world[i * 3 + 2];
+          const ny = (y - box.min.y) / size.y;
+          const ax = Math.abs(x - cx) / hx;
+          if (hairOf[i]) {
+            c.copy(midC);
+            if (ny < 0.55) c.lerp(tipC, 1 - ny / 0.55);
+            else c.lerp(rootC, (ny - 0.55) / 0.45);
+          } else if (ny > 0.78) {
+            c.copy(skin);
+            if (z > faceZ && ny > 0.86 && ny < 0.935 && ax > 0.04 && ax < 0.15) c.copy(eye);
+            else if (z > faceZ && ny > 0.8 && ny < 0.845 && ax < 0.045) c.copy(lip);
+          } else if (ny > 0.5) {
+            if (ax > 0.26) c.copy(sleeve);
+            else if (ax < 0.065 && ny < 0.72 && ny > 0.52) c.copy(tie);
+            else c.copy(shirt);
+          } else if (ny > 0.13) {
+            c.copy(skirt);
+          } else {
+            c.copy(boot);
+          }
+          colors[i * 3] = c.r;
+          colors[i * 3 + 1] = c.g;
+          colors[i * 3 + 2] = c.b;
+        }
+        geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+        return true;
+      };
+
+      window.__inspectFbx = async (fbx) => {
+        const group = await new FBXLoader().loadAsync(fbx);
+        group.updateMatrixWorld(true);
+        const info = [];
+        group.traverse((o) => {
+          if (!o.isMesh) return;
+          const mats = Array.isArray(o.material) ? o.material : [o.material];
+          const box = new THREE.Box3().setFromObject(o);
+          const size = box.getSize(new THREE.Vector3());
+          const pos = o.geometry?.attributes?.position;
+          info.push({
+            name: o.name,
+            type: o.type,
+            verts: pos?.count ?? 0,
+            size: [+size.x.toFixed(3), +size.y.toFixed(3), +size.z.toFixed(3)],
+            min: [+box.min.x.toFixed(3), +box.min.y.toFixed(3), +box.min.z.toFixed(3)],
+            max: [+box.max.x.toFixed(3), +box.max.y.toFixed(3), +box.max.z.toFixed(3)],
+            mats: mats.map((m) => ({
+              name: m?.name,
+              type: m?.type,
+              color: m?.color ? "#" + m.color.getHexString() : null,
+              map: Boolean(m?.map),
+            })),
+          });
+        });
+        window.__inspect = { meshes: info, clips: (group.animations || []).map((c) => c.name) };
+        return window.__inspect;
+      };
+
+      window.__fbx2glb = async (opts) => {
+        const { fbx, albedos = [], normal, paintMiku = false } = opts;
+        log("loading " + fbx);
+        const group = await new FBXLoader().loadAsync(fbx);
+        group.updateMatrixWorld(true);
+        const clips = group.animations || [];
+
+        const fallbackAlbedos = (
+          await Promise.all(albedos.map((u) => loadTex(u, THREE.SRGBColorSpace)))
+        ).filter(Boolean);
+        const fallbackNormal = normal
+          ? await loadTex(normal, THREE.NoColorSpace)
+          : null;
+
+        const wantMiku =
+          paintMiku || /miku/i.test(String(fbx)) || /miku/i.test(group.name || "");
+
+        let meshIndex = 0;
+        const meshInfos = [];
+        group.traverse((o) => {
+          const mesh = o;
+          if (!mesh.isMesh) return;
+          const srcs = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          if (wantMiku) paintMikuMesh(mesh, srcs);
+          const next = srcs.map((src) => {
+            const fromFbx = toCanvas(src?.map, THREE.SRGBColorSpace);
+            const albedo = fromFbx || null;
+            const nrm = toCanvas(src?.normalMap, THREE.NoColorSpace) || fallbackNormal;
+            const hair = isHairName(src?.name);
+            const named = namedColor(src?.name);
+            const hasVColor = Boolean(mesh.geometry?.getAttribute?.("color"));
+            const color = albedo
+              ? new THREE.Color(0xffffff)
+              : named
+                ? new THREE.Color(named)
+                : src?.color?.clone?.() || new THREE.Color(0xcccccc);
+            return new THREE.MeshStandardMaterial({
+              name: src?.name || "mat",
+              color: hasVColor ? new THREE.Color(0xffffff) : color,
+              vertexColors: hasVColor,
+              map: albedo,
+              normalMap: nrm,
+              metalness: hair ? 0.1 : 0.05,
+              roughness: hair ? 0.28 : 0.52,
+              emissive: hair ? new THREE.Color(MIKU_PALETTE.hair) : new THREE.Color(0x000000),
+              emissiveIntensity: hair ? 0.22 : 0,
+              side: THREE.FrontSide,
+            });
+          });
+          mesh.material = Array.isArray(mesh.material) ? next : next[0];
+          mesh.frustumCulled = false;
+          meshInfos.push({
+            name: mesh.name,
+            hair: srcs.some((s) => isHairName(s?.name)),
+            verts: mesh.geometry?.attributes?.position?.count ?? 0,
+            mats: next.map((m) => m.name),
+          });
+          meshIndex += 1;
+        });
+
+        group.traverse((o) => {
+          if (!o.isMesh) return;
+          const geo = o.geometry;
+          const n = geo?.morphAttributes?.position?.length ?? 0;
+          if (!n) return;
+          o.morphTargetDictionary = { ...(o.morphTargetDictionary || {}) };
+          o.morphTargetInfluences = o.morphTargetInfluences ? o.morphTargetInfluences.slice() : [];
+          for (let i = 0; i < n; i++) {
+            o.morphTargetDictionary[String(i)] = i;
+            if (o.morphTargetInfluences[i] == null) o.morphTargetInfluences[i] = 0;
+          }
+        });
+        const safeClips = clips.map((c) => {
+          const tracks = c.tracks.filter((t) => !t.name.includes("morphTargetInfluences"));
+          return new THREE.AnimationClip(c.name, c.duration, tracks);
+        });
+
+        const exporter = new GLTFExporter();
+        const glb = await exporter.parseAsync(group, {
+          binary: true,
+          animations: safeClips,
+        });
+        const bytes = new Uint8Array(glb);
+        let bin = "";
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        }
+        window.__result = {
+          ok: true,
+          size: bytes.length,
+          clips: clips.map((c) => ({ name: c.name, duration: c.duration })),
+          meshes: meshIndex,
+          meshInfos,
+          base64: btoa(bin),
+        };
+        log("ok " + bytes.length);
+        return window.__result.clips;
+      };
+
+      window.__ready = true;
+    </script>
+  </body>
+</html>

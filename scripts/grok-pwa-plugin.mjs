@@ -133,9 +133,12 @@ function wrapHtmlResponses(middlewares) {
 
     res.end = (chunk, encoding, cb) => {
       const done = typeof encoding === "function" ? encoding : cb;
-      if (decideMode() === "passthrough") return originalEnd(chunk, encoding, cb);
+      const enc = typeof encoding === "string" ? encoding : undefined;
+      if (decideMode() === "passthrough") {
+        return originalEnd(chunk, enc, done);
+      }
       if (chunk) {
-        for (const out of injector.push(toBuffer(chunk, encoding))) originalWrite(out);
+        for (const out of injector.push(toBuffer(chunk, enc))) originalWrite(out);
       }
       for (const out of injector.flush()) originalWrite(out);
       return originalEnd(undefined, undefined, done);
@@ -155,7 +158,9 @@ export function grokPwaPlugin() {
       // Registered directly (not in a returned post-hook) so both run BEFORE
       // TanStack Start's SSR middleware, like the auth-popup plugin.
       serveGrokPwa(server.middlewares);
-      wrapHtmlResponses(server.middlewares);
+      // wrapHtmlResponses is disabled in dev mode because Vite's transformIndexHtml
+      // already injects PWA head tags into index.html, and monkey-patching
+      // res.write/res.end deadlocks TanStack Start streaming SSR responses.
     },
     configurePreviewServer(server) {
       serveGrokPwa(server.middlewares);

@@ -74,22 +74,45 @@ function i16ToB64(samples: Int16Array): string {
 }
 
 function playPcm24k(b64: string) {
-  if (!playCtx) playCtx = new AudioContext({ sampleRate: 24000 });
-  if (playCtx.state === "suspended") void playCtx.resume();
-  const raw = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-  const even = raw.byteLength - (raw.byteLength % 2);
-  const samples = new Int16Array(raw.buffer, raw.byteOffset, even / 2);
-  if (!samples.length) return;
-  const buf = playCtx.createBuffer(1, samples.length, 24000);
-  const ch = buf.getChannelData(0);
-  for (let i = 0; i < samples.length; i++) ch[i] = samples[i]! / 32768;
-  const src = playCtx.createBufferSource();
-  src.buffer = buf;
-  src.connect(playCtx.destination);
-  const now = playCtx.currentTime;
-  if (playTime < now) playTime = now;
-  src.start(playTime);
-  playTime += buf.duration;
+  try {
+    if (!playCtx) {
+      const Ctor =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      playCtx = new Ctor({ sampleRate: 24000 });
+    }
+    if (playCtx.state === "suspended") {
+      void playCtx.resume();
+    }
+
+    const binaryString = atob(b64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const dataView = new DataView(bytes.buffer);
+    const numSamples = Math.floor(len / 2);
+    if (numSamples <= 0) return;
+
+    const buf = playCtx.createBuffer(1, numSamples, 24000);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < numSamples; i++) {
+      const sample = dataView.getInt16(i * 2, true);
+      ch[i] = sample / 32768.0;
+    }
+
+    const src = playCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(playCtx.destination);
+
+    const now = playCtx.currentTime;
+    if (playTime < now) playTime = now;
+    src.start(playTime);
+    playTime += buf.duration;
+  } catch (e) {
+    console.error("[gemini-bidi-client] playPcm24k error:", e);
+  }
 }
 
 export function isGeminiBidiLive() {

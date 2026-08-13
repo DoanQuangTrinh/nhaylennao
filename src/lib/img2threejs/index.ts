@@ -5,7 +5,7 @@
  *
  * Character factories:
  *   createModelCharacter  — unified (GLB → fashion → photo)
- *   createGlbCharacter    — skinned Soldier / Xbot / Robot
+ *   createGlbCharacter    — skinned user Mixamo / Miku / Lisa
  *   createFashionCharacter — procedural multi-part human
  *   createPhotoCharacter  — AI full-body billboard
  *
@@ -15,6 +15,7 @@
 
 export * from "./runtime";
 export * from "./materials";
+export * from "./glbPrefs";
 export * from "./createHumanCharacter";
 export * from "./createFashionCharacter";
 export * from "./createVenueProps";

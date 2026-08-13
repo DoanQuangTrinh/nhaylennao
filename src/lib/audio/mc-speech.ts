@@ -35,23 +35,42 @@ function getAudioCtx(): AudioContext | null {
 }
 
 function playPcm24k(base64: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const ctx = getAudioCtx();
-    if (!ctx) {
-      reject(new Error("no audio context"));
-      return;
+  return new Promise((resolve) => {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) {
+        resolve();
+        return;
+      }
+      const binaryString = atob(base64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const dataView = new DataView(bytes.buffer);
+      const numSamples = Math.floor(len / 2);
+      if (numSamples <= 0) {
+        resolve();
+        return;
+      }
+
+      const buf = ctx.createBuffer(1, numSamples, 24000);
+      const ch = buf.getChannelData(0);
+      for (let i = 0; i < numSamples; i++) {
+        const sample = dataView.getInt16(i * 2, true);
+        ch[i] = sample / 32768.0;
+      }
+
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.onended = () => resolve();
+      src.start();
+    } catch (e) {
+      console.error("[mc-speech] playPcm24k error:", e);
+      resolve();
     }
-    const raw = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-    const even = raw.byteLength - (raw.byteLength % 2);
-    const samples = new Int16Array(raw.buffer, raw.byteOffset, even / 2);
-    const buf = ctx.createBuffer(1, samples.length, 24000);
-    const ch = buf.getChannelData(0);
-    for (let i = 0; i < samples.length; i++) ch[i] = samples[i]! / 32768;
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.onended = () => resolve();
-    src.start();
   });
 }
 
@@ -62,7 +81,6 @@ export function unlockMcSpeech() {
 /** Speak only through Gemini Live. Silent if no key or request fails. */
 export function speakMcLine(text: string, _lang = "vi-VN") {
   if (typeof window === "undefined") return;
-  if (!geminiKey) return;
   const spoken = stripForSpeech(text);
   if (!spoken) return;
   unlockMcSpeech();
@@ -71,6 +89,8 @@ export function speakMcLine(text: string, _lang = "vi-VN") {
     void sendGeminiBidiText(spoken, geminiKey);
     return;
   }
+
+  if (!geminiKey) return;
 
   void (async () => {
     try {

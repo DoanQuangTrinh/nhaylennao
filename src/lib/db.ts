@@ -221,7 +221,8 @@ export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite
  */
 export function ensureDbReady(): Promise<void> {
   if (dbSource !== "pglite") return Promise.resolve();
-  return getSql().then(() => undefined);
+  getSql().catch((err) => console.error("[db] PGLite init error:", err));
+  return Promise.resolve();
 }
 
 // Server-only eager start: kick PGLite bootstrap as soon as this module loads in
@@ -230,9 +231,5 @@ const globalBoot = globalThis as typeof globalThis & {
   __pgBootstrapPromise__?: Promise<void>;
 };
 if (typeof window === "undefined" && dbSource === "pglite") {
-  globalBoot.__pgBootstrapPromise__ ??= ensureDbReady().catch((err) => {
-    globalBoot.__pgBootstrapPromise__ = undefined;
-    console.error("[db] PGLite bootstrap failed:", err);
-    throw err;
-  });
+  globalBoot.__pgBootstrapPromise__ ??= ensureDbReady();
 }

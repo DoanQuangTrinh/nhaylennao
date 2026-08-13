@@ -1,0 +1,192 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/build/three.module.js",
+          "fflate": "/node_modules/three/examples/jsm/libs/fflate.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <pre id="log">starting</pre>
+    <script type="module">
+      import * as THREE from "three";
+      import { USDLoader } from "/node_modules/three/examples/jsm/loaders/USDLoader.js";
+      import { GLTFExporter } from "/node_modules/three/examples/jsm/exporters/GLTFExporter.js";
+
+      const log = (m) => {
+        document.getElementById("log").textContent = String(m);
+      };
+
+      const toCanvas = (tex, colorSpace) => {
+        if (!tex) return null;
+        const img = tex.image;
+        if (!img) return null;
+        const w = img.width || img.videoWidth || 0;
+        const h = img.height || img.videoHeight || 0;
+        if (!w || !h) return null;
+        try {
+          const c = document.createElement("canvas");
+          c.width = w;
+          c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          const out = new THREE.CanvasTexture(c);
+          out.colorSpace = colorSpace ?? tex.colorSpace ?? THREE.SRGBColorSpace;
+          out.wrapS = tex.wrapS;
+          out.wrapT = tex.wrapT;
+          out.flipY = false;
+          out.needsUpdate = true;
+          return out;
+        } catch {
+          return null;
+        }
+      };
+
+      const waitTextures = (root) =>
+        new Promise((resolve) => {
+          const start = performance.now();
+          const tick = () => {
+            let pending = 0;
+            root.traverse((o) => {
+              const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+              for (const m of mats) {
+                for (const key of ["map", "normalMap", "emissiveMap", "metalnessMap", "roughnessMap", "alphaMap"]) {
+                  const tex = m?.[key];
+                  if (tex && !tex.image) pending += 1;
+                }
+              }
+            });
+            if (pending === 0 || performance.now() - start > 8000) resolve(pending);
+            else requestAnimationFrame(tick);
+          };
+          tick();
+        });
+
+      const describe = (group) => {
+        const meshes = [];
+        group.updateMatrixWorld(true);
+        group.traverse((o) => {
+          if (!o.isMesh) return;
+          const mats = Array.isArray(o.material) ? o.material : [o.material];
+          const box = new THREE.Box3().setFromObject(o);
+          const size = box.getSize(new THREE.Vector3());
+          meshes.push({
+            name: o.name,
+            type: o.type,
+            verts: o.geometry?.attributes?.position?.count ?? 0,
+            size: [+size.x.toFixed(3), +size.y.toFixed(3), +size.z.toFixed(3)],
+            mats: mats.map((m) => ({
+              name: m?.name,
+              type: m?.type,
+              color: m?.color ? "#" + m.color.getHexString() : null,
+              map: Boolean(m?.map?.image),
+              transparent: Boolean(m?.transparent),
+              opacity: m?.opacity,
+            })),
+          });
+        });
+        const box = new THREE.Box3().setFromObject(group);
+        const size = box.getSize(new THREE.Vector3());
+        return {
+          name: group.name,
+          size: [+size.x.toFixed(3), +size.y.toFixed(3), +size.z.toFixed(3)],
+          min: [+box.min.x.toFixed(3), +box.min.y.toFixed(3), +box.min.z.toFixed(3)],
+          max: [+box.max.x.toFixed(3), +box.max.y.toFixed(3), +box.max.z.toFixed(3)],
+          clips: (group.animations || []).map((c) => ({
+            name: c.name,
+            duration: c.duration,
+            tracks: c.tracks.length,
+          })),
+          bones: (() => {
+            let n = 0;
+            group.traverse((o) => {
+              if (o.isBone) n += 1;
+            });
+            return n;
+          })(),
+          meshes,
+        };
+      };
+
+      window.__inspectUsdz = async (url) => {
+        log("inspect " + url);
+        const group = await new USDLoader().loadAsync(url);
+        await waitTextures(group);
+        window.__inspect = describe(group);
+        log("inspected " + (window.__inspect.meshes?.length ?? 0));
+        return window.__inspect;
+      };
+
+      window.__usdz2glb = async (opts) => {
+        const { url } = opts;
+        log("loading " + url);
+        const group = await new USDLoader().loadAsync(url);
+        await waitTextures(group);
+        group.updateMatrixWorld(true);
+        const clips = group.animations || [];
+
+        let meshIndex = 0;
+        group.traverse((o) => {
+          if (!o.isMesh) return;
+          const srcs = Array.isArray(o.material) ? o.material : [o.material];
+          const next = srcs.map((src) => {
+            if (!src) return new THREE.MeshStandardMaterial({ color: 0xcccccc });
+            const map = toCanvas(src.map, THREE.SRGBColorSpace);
+            const nrm = toCanvas(src.normalMap, THREE.NoColorSpace);
+            const alpha = toCanvas(src.alphaMap, THREE.NoColorSpace);
+            const mat = new THREE.MeshStandardMaterial({
+              name: src.name || "mat",
+              color: src.color?.clone?.() || new THREE.Color(0xffffff),
+              map,
+              normalMap: nrm,
+              alphaMap: alpha,
+              metalness: src.metalness ?? 0.08,
+              roughness: src.roughness ?? 0.55,
+              transparent: Boolean(src.transparent || alpha || /cutoff|lash|hair|reflh/i.test(src.name || "")),
+              opacity: src.opacity ?? 1,
+              alphaTest:
+                src.transparent || alpha || /cutoff|lash|hair|reflh/i.test(src.name || "")
+                  ? 0.32
+                  : (src.alphaTest ?? 0),
+              side: src.side ?? THREE.FrontSide,
+              vertexColors: Boolean(src.vertexColors),
+            });
+            return mat;
+          });
+          o.material = Array.isArray(o.material) ? next : next[0];
+          o.frustumCulled = false;
+          meshIndex += 1;
+        });
+
+        const exporter = new GLTFExporter();
+        const glb = await exporter.parseAsync(group, {
+          binary: true,
+          animations: clips,
+        });
+        const bytes = new Uint8Array(glb);
+        let bin = "";
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        }
+        window.__result = {
+          ok: true,
+          size: bytes.length,
+          clips: clips.map((c) => ({ name: c.name, duration: c.duration, tracks: c.tracks.length })),
+          meshes: meshIndex,
+          inspect: describe(group),
+          base64: btoa(bin),
+        };
+        log("ok " + bytes.length);
+        return window.__result.clips;
+      };
+
+      window.__ready = true;
+      log("ready");
+    </script>
+  </body>
+</html>

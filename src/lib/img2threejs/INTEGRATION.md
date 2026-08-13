@@ -1,14 +1,16 @@
 # 3D model + img2threejs integration
 
-## GLB models (`public/models/`)
+## GLB models (`public/3d/`)
 
 | File | Use |
 | --- | --- |
-| `Soldier.glb` | Human dancer A (Idle/Walk/Run) |
-| `Xbot.glb` | Human dancer B (idle/walk/run) |
-| `RobotExpressive.glb` | Fun neon dancer / DJ (Idle/Dance/Wave) |
-| `CesiumMan.glb` | Extra humanoid |
-| `Fox.glb` | Prop / easter egg |
+| `hip_hop_dancing.glb` | Floor guest (Aya + extras) |
+| `rumba_dancing.glb` | Floor guest (Ken + extras) |
+| `ymca_dance.glb` | Floor guest (Mia) / MC |
+| `miku_dj.glb` | DJ |
+| `lisa_pole.glb` | Pole dancer |
+
+Venue furniture stays in `public/models/` (booth, bar, tables) — not characters.
 
 ## Unified factory
 
@@ -16,7 +18,7 @@
 import { createModelCharacter } from "@/lib/img2threejs";
 
 const dancer = await createModelCharacter({
-  style: 0,       // maps to soldier / xbot / robot
+  style: 0,       // maps to hipHop / rumba / ymca
   dancing: true,
   role: "dancer", // or dj | bartender | bouncer
   prefer: "auto", // glb (default) → fashion → photo

@@ -40,18 +40,6 @@ let lastProgress = { url: "", loaded: 0, total: 0, ready: 0, pending: 0 };
 function ensureLoader(): GLTFLoader {
   if (loader) return loader;
   loader = new GLTFLoader();
-
-  try {
-    draco = new DRACOLoader();
-    draco.setDecoderPath(
-      "https://www.gstatic.com/draco/versioned/decoders/1.5.7/",
-    );
-    draco.setDecoderConfig({ type: "js" });
-    loader.setDRACOLoader(draco);
-  } catch {
-    /* DRACO optional */
-  }
-
   loader.manager.onProgress = (url, loaded, total) => {
     lastProgress = { ...lastProgress, url, loaded, total };
     listeners.forEach((fn) => fn(url, loaded, total));
@@ -171,7 +159,7 @@ function normalizeMaterial(
       normalMap: (src as THREE.MeshPhongMaterial).normalMap ?? null,
       emissive: src.emissive?.clone?.() ?? new THREE.Color(0x000000),
       emissiveMap: src.emissiveMap ?? null,
-      emissiveIntensity: 0.25,
+      emissiveIntensity: 0,
       metalness: 0.15,
       roughness: 0.65,
       transparent: src.transparent,
@@ -189,7 +177,7 @@ function normalizeMaterial(
   if (mat.type === "MeshStandardMaterial" || mat.type === "MeshPhysicalMaterial") {
     const std = mat as THREE.MeshStandardMaterial;
     applyTint(std, opts);
-    if (std.emissiveIntensity < 0.15) std.emissiveIntensity = 0.2;
+    if (std.emissiveIntensity > 0.12) std.emissiveIntensity = 0.08;
     return std;
   }
 
@@ -258,23 +246,64 @@ export function createGltfMixer(root: THREE.Group) {
   };
 }
 
-/** Catalog of club GLB models under /public/models */
+/** Catalog of user 3D GLB models under /public/3d */
+export const USER_3D_GLBS = [
+  "/3d/hip_hop_dancing.glb",
+  "/3d/rumba_dancing.glb",
+  "/3d/ymca_dance.glb",
+  "/3d/hip_hop_dancing_1.glb",
+  "/3d/dancing.glb",
+  "/3d/dancing_running_man.glb",
+  "/3d/samba_dancing.glb",
+  "/3d/salsadance.glb",
+  "/3d/spooky_skeleton_dance_2.glb",
+  "/3d/tut_hip_hop_dance.glb",
+  "/3d/chicken_dance.glb",
+  "/3d/miku_dj.glb?v=color",
+  "/3d/lisa_pole.glb",
+  "/3d/5dance_11.glb",
+  "/3d/gangster.glb",
+] as const;
+
 export const CLUB_GLTF = {
-  soldier: "/models/Soldier.glb",
-  xbot: "/models/Xbot.glb",
-  robot: "/models/RobotExpressive.glb",
-  cesium: "/models/CesiumMan.glb",
-  fox: "/models/Fox.glb",
+  hipHop: USER_3D_GLBS[0],
+  rumba: USER_3D_GLBS[1],
+  ymca: USER_3D_GLBS[2],
+  hipHop2: USER_3D_GLBS[3],
+  dancing: USER_3D_GLBS[4],
+  runningMan: USER_3D_GLBS[5],
+  samba: USER_3D_GLBS[6],
+  salsa: USER_3D_GLBS[7],
+  skeleton: USER_3D_GLBS[8],
+  tutHipHop: USER_3D_GLBS[9],
+  chicken: USER_3D_GLBS[10],
+  miku: USER_3D_GLBS[11],
+  lisa: USER_3D_GLBS[12],
+  bar5: USER_3D_GLBS[13],
+  gangster: USER_3D_GLBS[14],
+  freddie: "/dj_fbx/freddie_brians.glb",
 } as const;
+
+/** Floor guests — only packs converted from public/fbx */
+export const FLOOR_KINDS = [
+  "chicken",
+  "runningMan",
+  "hipHop2",
+  "dancing",
+  "salsa",
+  "hipHop",
+  "ymca",
+  "tutHipHop",
+  "samba",
+  "skeleton",
+  "rumba",
+] as const;
 
 export type ClubModelId = keyof typeof CLUB_GLTF;
 
-/** All humanoid models used for dancers (preloaded on overlay) */
-export const DANCER_GLTF_URLS = [
-  CLUB_GLTF.soldier,
-  CLUB_GLTF.xbot,
-  CLUB_GLTF.robot,
-] as const;
+/** Prefetch the small packs. Larger /3d models load when a dancer actually uses them. */
+/** Only the first dancer pack — others load when that person actually spawns. */
+export const DANCER_GLTF_URLS = [CLUB_GLTF.hipHop] as const;
 
 export function disposeGltfCache() {
   cache.clear();

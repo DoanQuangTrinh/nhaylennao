@@ -1,15 +1,11 @@
 /**
- * Unified 3D character factory for Neon Club.
- *
- * Priority:
- *  1. Skinned GLB when preferred + GPU supports it
- *  2. Fashion procedural mesh (always readable)
- *
- * Staff always get volume mesh (never flat photo).
+ * 100% 3D GLB / STL Model Character Factory for QuanBar.
+ * ONLY loads real 3D models provided in /public/3d/ and /public/models/
+ * (user Mixamo dance packs, Miku DJ, Lisa pole).
  */
 import type { SculptGroup } from "./runtime";
-import { createGlbCharacter, shouldUseGlb } from "./createGlbCharacter";
-import { createFashionCharacter } from "./createFashionCharacter";
+import { createGlbCharacter } from "./createGlbCharacter";
+import { createStlCharacter } from "@/lib/three/stl";
 
 export type ModelCharOpts = {
   style?: number;
@@ -19,50 +15,40 @@ export type ModelCharOpts = {
   auraUntil?: number;
   scale?: number;
   role?: "dancer" | "dj" | "bartender" | "bouncer" | "guest";
-  /** Force source */
-  prefer?: "glb" | "fashion" | "auto";
+  prefer?: string;
+  stlUrl?: string;
 };
 
 /**
- * Spawn a stream-ready 3D character (GLB skinned or fashion procedural).
+ * Spawn exclusively 3D GLB / STL Model characters for QuanBar.
  */
 export async function createModelCharacter(
   opts: ModelCharOpts = {},
 ): Promise<SculptGroup> {
-  const prefer = opts.prefer ?? "auto";
   const role = opts.role ?? "dancer";
   const style = opts.style ?? 0;
-  const useGlb =
-    prefer === "glb" || (prefer === "auto" && shouldUseGlb());
+  const slot = Math.abs(style) % 11;
 
-  if (useGlb) {
+  if (opts.prefer === "stl") {
     try {
-      // style → model variety: soldier / xbot / robot
-      let model = (style % 3) as 0 | 1 | 2;
-      if (role === "bouncer") model = 0;
-      if (role === "dj") model = 2; // Robot with Dance clip
-      if (role === "bartender") model = 1;
-
-      return await createGlbCharacter({
-        model,
-        style,
+      return await createStlCharacter({
+        url: opts.stlUrl ?? "/3d/15.stl",
         dancing: opts.dancing ?? true,
-        wingTier: opts.wingTier,
-        auraUntil: opts.auraUntil,
-        scale: opts.scale ?? (role === "bouncer" ? 1.08 : 1),
+        scale: opts.scale,
+        role,
       });
     } catch (e) {
-      console.warn("[createModelCharacter] GLB failed → fashion", e);
+      console.warn("[createModelCharacter] STL load failed → glb fallback", e);
     }
   }
 
-  return createFashionCharacter({
-    outfit: style,
-    skin: opts.skin,
-    dancing: opts.dancing,
+  return createGlbCharacter({
+    model: slot,
+    style,
+    kind: opts.prefer === "glb" ? "hipHop" : undefined,
+    dancing: opts.dancing ?? true,
     wingTier: opts.wingTier,
     auraUntil: opts.auraUntil,
-    scale: opts.scale,
-    role,
+    scale: opts.scale ?? (role === "bouncer" ? 1.08 : 1),
   });
 }

@@ -18,8 +18,8 @@ import { computeBrandWarnings } from "./brand-check.mjs";
 
 const url = checkedUrl(process.argv[2] || "http://127.0.0.1:8080/");
 const outPng = checkedOutputPath(
-  process.argv[3] || "/workspace/screenshots/app-builder-preview.png",
-  ["/workspace"],
+  process.argv[3] || `${process.cwd()}/screenshots/app-builder-preview.png`,
+  [process.cwd(), "/workspace"],
 );
 const timeoutMs = Number(process.env.BROWSER_SMOKE_TIMEOUT_MS || 45000);
 
@@ -40,7 +40,7 @@ try {
   });
   page.on("pageerror", (err) => pageErrors.push(String(err?.message || err)));
 
-  const resp = await page.goto(url, { waitUntil: "networkidle", timeout: timeoutMs });
+  const resp = await page.goto(url, { waitUntil: "commit", timeout: timeoutMs });
   const status = resp?.status() ?? 0;
   await page.waitForTimeout(1000);
 
@@ -48,7 +48,7 @@ try {
   const hasCanvas = (await page.locator("canvas").count()) > 0;
   const bodyTextLen = (await page.locator("body").innerText().catch(() => "")).trim().length;
 
-  await page.screenshot({ path: outPng, fullPage: false });
+  await page.screenshot({ path: outPng, fullPage: false, animations: "disabled", timeout: 10000 });
 
   // Brand-asset gate (best-effort heuristic, never changes the exit code) —
   // logic lives in brand-check.mjs so it is unit-testable without a browser.

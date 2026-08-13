@@ -4,8 +4,8 @@ import { Clone, Html, useAnimations, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import type { Dancer } from "@/lib/store/live-store";
 
-const MODEL_A = "/models/Soldier.glb";
-const MODEL_B = "/models/Xbot.glb";
+const MODEL_A = "/3d/hip_hop_dancing.glb";
+const MODEL_B = "/3d/rumba_dancing.glb";
 
 const OUTFIT = [
   "#22d3ee",
@@ -200,9 +200,27 @@ function RealisticGltf({
   );
 }
 
+function easeOutBounce(x: number): number {
+  const n1 = 7.5625;
+  const d1 = 2.75;
+  if (x < 1 / d1) {
+    return n1 * x * x;
+  } else if (x < 2 / d1) {
+    return n1 * (x -= 1.5 / d1) * x + 0.75;
+  } else if (x < 2.5 / d1) {
+    return n1 * (x -= 2.25 / d1) * x + 0.9375;
+  } else {
+    return n1 * (x -= 2.625 / d1) * x + 0.984375;
+  }
+}
+
+function easeOutCubic(x: number): number {
+  return 1 - Math.pow(1 - x, 3);
+}
+
 export function DancerAvatar({ dancer, index, total }: Props) {
-  const useXbot = dancer.skin % 2 === 1;
-  const modelUrl = useXbot ? MODEL_B : MODEL_A;
+  const useAlt = dancer.skin % 2 === 1;
+  const modelUrl = useAlt ? MODEL_B : MODEL_A;
   const root = useRef<THREE.Group>(null);
   const phase = useMemo(() => {
     let h = 0;
@@ -221,12 +239,34 @@ export function DancerAvatar({ dancer, index, total }: Props) {
     const targetX = (index - (total - 1) / 2) * spacing;
     const t = state.clock.elapsedTime + phase;
 
+    // Entrance Animation (Drop down from sky or run in from side)
+    const ageSec = Math.max(0, (Date.now() - (dancer.joinedAt || Date.now())) / 1000);
+    const isSkyDrop = (dancer.skin + dancer.style) % 2 === 0;
+
+    let entranceY = 0;
+    let entranceXOffset = 0;
+
+    if (ageSec < 1.4) {
+      if (isSkyDrop) {
+        // Drop down from sky (y=7 -> y=0 with spring bounce)
+        const progress = Math.min(1, ageSec / 1.2);
+        entranceY = (1 - easeOutBounce(progress)) * 7;
+      } else {
+        // Run in from side offscreen
+        const progress = Math.min(1, ageSec / 1.0);
+        const sideDir = index % 2 === 0 ? -12 : 12;
+        entranceXOffset = (1 - easeOutCubic(progress)) * sideDir;
+      }
+    }
+
+    g.position.y = entranceY;
+
     if (dancer.dancing) {
-      g.position.x = targetX + Math.sin(t * 2.3) * 0.12;
+      g.position.x = targetX + entranceXOffset + Math.sin(t * 2.3) * 0.12;
       g.position.z = Math.cos(t * 1.8) * 0.14;
       g.rotation.y = Math.sin(t * 0.85) * 0.35;
     } else {
-      g.position.x = THREE.MathUtils.damp(g.position.x, targetX, 6, d);
+      g.position.x = THREE.MathUtils.damp(g.position.x, targetX + entranceXOffset, 6, d);
       g.position.z = THREE.MathUtils.damp(g.position.z, 0, 6, d);
       g.rotation.y = THREE.MathUtils.damp(g.rotation.y, 0, 4, d);
     }
