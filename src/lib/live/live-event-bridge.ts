@@ -8,6 +8,8 @@ export type LiveIncomingEvent =
   | { type: "follow"; nickname: string; platform: "tiktok" | "youtube" | "facebook" }
   | { type: "roomUser"; viewerCount: number; platform: "tiktok" | "youtube" | "facebook" };
 
+let memberJoinCount = 0;
+
 /**
  * Handle incoming live stream events (TikTok / YouTube / Facebook) and dispatch them to the 3D bar scene store
  */
@@ -38,8 +40,12 @@ export function dispatchLiveEventToStore(event: LiveIncomingEvent) {
     case "member": {
       const { nickname, platform } = event;
       store.join(nickname, platform, false);
-      store.pushMc(`👋 Chào mừng @${nickname} vừa vào phòng quẩy!`);
-      store.log(`[${platform.toUpperCase()}] 🚶 ${nickname} vừa vào sàn`);
+      memberJoinCount += 1;
+      // Greet only 1 out of every 10 joins to avoid speech spam!
+      if (memberJoinCount % 10 === 0) {
+        store.pushMc(`👋 Chào mừng @${nickname} cùng dàn quẩy mới vào phòng! 💃`);
+      }
+      store.log(`[${platform.toUpperCase()}] 🚶 ${nickname} vừa vào sàn (#${memberJoinCount})`);
       break;
     }
 
