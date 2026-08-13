@@ -267,21 +267,7 @@ export function DanceFloor({ className, preview = false }: Props) {
         giftedTotal: 0,
       }));
 
-      if (preview) {
-        glbReady = true;
-      } else {
-        void preloadGltf([CLUB_GLTF.gangster, CLUB_GLTF.freddie]).catch(() => {});
-        preloadGlbCharacters()
-          .then(() => {
-            if (!alive) return;
-            glbReady = true;
-            lastFp = "";
-            needsSync = true;
-          })
-          .catch(() => {
-            glbReady = preferGlb;
-          });
-      }
+      glbReady = true;
 
       const removeRig = (rig: PersonRig) => {
         getRuntime(rig.root)?.dispose?.();
